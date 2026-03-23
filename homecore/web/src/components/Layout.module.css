@@ -49,3 +49,48 @@
   padding: 2rem;
   overflow-y: auto;
 }
+
+/* ── Mobile ─────────────────────────────────────────────────────── */
+@media (max-width: 640px) {
+  .shell {
+    flex-direction: column;
+  }
+
+  .sidebar {
+    width: 100%;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-around;
+    border-right: none;
+    border-top: 1px solid var(--color-border);
+    padding: 0.5rem 1rem;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+  }
+
+  .logo {
+    display: none;
+  }
+
+  .link,
+  .linkActive {
+    flex-direction: column;
+    gap: 0.25rem;
+    padding: 0.5rem 1rem;
+    font-size: 0.75rem;
+    border-radius: 0.5rem;
+  }
+
+  .linkActive {
+    background: transparent;
+    color: var(--color-accent);
+  }
+
+  .main {
+    padding: 1rem;
+    padding-bottom: 5rem;
+  }
+}

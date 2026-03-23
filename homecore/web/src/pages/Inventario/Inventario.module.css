@@ -40,10 +40,16 @@
 .icono { color: var(--color-accent); }
 
 /* Tabla */
+.tablaWrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
 .tabla {
   width: 100%;
   border-collapse: collapse;
   font-size: 0.9rem;
+  min-width: 480px;
 }
 
 .tabla th,

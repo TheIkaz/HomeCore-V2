@@ -17,25 +17,27 @@ export default function Agotados() {
       {productos.length === 0
         ? <p className={styles.vacio}>No hay productos agotados.</p>
         : (
-          <table className={styles.tabla}>
-            <thead>
-              <tr><th>Nombre</th><th>Categoría</th><th>Cantidad</th><th>Lista compra</th></tr>
-            </thead>
-            <tbody>
-              {productos.map((p) => (
-                <tr key={p.id}>
-                  <td>{p.nombre}</td>
-                  <td>{p.categoria}</td>
-                  <td>{p.cantidad} {p.unidad}</td>
-                  <td>
-                    <button onClick={() => toggleLista(p)}>
-                      {p.en_lista_compra ? "✓ En lista" : "+ Añadir"}
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <div className={styles.tablaWrapper}>
+            <table className={styles.tabla}>
+              <thead>
+                <tr><th>Nombre</th><th>Categoría</th><th>Cantidad</th><th>Lista compra</th></tr>
+              </thead>
+              <tbody>
+                {productos.map((p) => (
+                  <tr key={p.id}>
+                    <td>{p.nombre}</td>
+                    <td>{p.categoria}</td>
+                    <td>{p.cantidad} {p.unidad}</td>
+                    <td>
+                      <button onClick={() => toggleLista(p)}>
+                        {p.en_lista_compra ? "✓ En lista" : "+ Añadir"}
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )
       }
     </div>
