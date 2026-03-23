@@ -1,0 +1,40 @@
+# Carpeta de antecedentes y código legacy
+Antecedentes/
+
+# Secretos y configuración local
+.env
+*.env
+!docker-compose.example.env
+
+# Base de datos SQLite (datos de producción)
+*.sqlite
+*.db
+
+# Backups de Restic
+backups/
+
+# Media de Jellyfin
+media/
+
+# Datos de usuario (Nextcloud, Paperless)
+data/
+
+# Certificados TLS generados por Caddy
+caddy/data/
+caddy/config/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+
+# Node / React
+node_modules/
+dist/
+build/
+
+# OS
+.DS_Store
+Thumbs.db
