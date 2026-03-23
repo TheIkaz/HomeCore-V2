@@ -1,6 +1,6 @@
 # HomeCore V2 — Estado del proyecto
 
-**Última actualización: Marzo 2026**
+**Última actualización: 24 marzo 2026**
 Repo: https://github.com/TheIkaz/HomeCore-V2
 
 ---
@@ -39,6 +39,14 @@ Repo: https://github.com/TheIkaz/HomeCore-V2
 ### Docker
 - `homecore/Dockerfile` — build multi-etapa: Node construye React, Python sirve todo con Gunicorn
 
+### Despliegue en producción (✅ COMPLETADO — 24 marzo 2026)
+- Sistema desplegado en Raspberry Pi 4 (8GB, 1TB SSD en `/srv/homecore`)
+- Cloudflare Tunnel conectado y enrutando tráfico
+- `https://auth.theikaz.com` — Authentik operativo, login funcionando
+- `https://homecore.theikaz.com` — Dashboard accesible con SSO vía forward auth
+- Grupos `familia` y `admin` creados en Authentik
+- Outpost: usar **authentik Embedded Outpost** (no crear outpost personalizado)
+
 ---
 
 ## Qué falta
@@ -62,14 +70,12 @@ Configurar SSO con Authentik en cada servicio (OIDC para Nextcloud y Paperless, 
 - Añadir **Watchtower** al docker-compose para actualizaciones automáticas de contenedores
 
 ### Pendiente fuera del código
-- Registrar dominio `theikaz.com` en Cloudflare (bloqueado temporalmente por cuenta nueva)
-- Obtener token del túnel de Cloudflare (Zero Trust > Tunnels)
-- Rellenar `.env` en la Pi con valores reales y arrancar los contenedores
-- Configuración manual post-arranque de Authentik:
-  - Crear grupos `familia` y `admin`
-  - Crear usuarios
-  - Configurar outpost de forward auth (para que Caddy pueda delegar en Authentik)
-  - Configurar OIDC para Nextcloud y Paperless
+- ~~Registrar dominio `theikaz.com` en Cloudflare~~ ✅
+- ~~Obtener token del túnel de Cloudflare~~ ✅
+- ~~Rellenar `.env` en la Pi y arrancar contenedores~~ ✅
+- ~~Configuración manual de Authentik (grupos, outpost)~~ ✅
+- Crear usuarios adicionales en Authentik (familia)
+- Configurar OIDC para Nextcloud y Paperless (Fase 3)
 
 ---
 
@@ -77,8 +83,8 @@ Configurar SSO con Authentik en cada servicio (OIDC para Nextcloud y Paperless, 
 
 | URL | Servicio | Estado |
 |---|---|---|
-| `auth.theikaz.com` | Authentik | Listo en Caddyfile |
-| `homecore.theikaz.com` | HomeCore dashboard | Listo en Caddyfile |
+| `auth.theikaz.com` | Authentik | ✅ Operativo |
+| `homecore.theikaz.com` | HomeCore dashboard | ✅ Operativo |
 | `files.theikaz.com` | Nextcloud | Comentado — Fase 3 |
 | `media.theikaz.com` | Jellyfin | Comentado — Fase 3 |
 | `docs.theikaz.com` | Paperless-ngx | Comentado — Fase 3 |
