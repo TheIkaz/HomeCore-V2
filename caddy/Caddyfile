@@ -39,6 +39,9 @@
 http://auth.{$DOMINIO} {
     reverse_proxy authentik-server:9000 {
         header_up X-Forwarded-Proto https
+        transport http {
+            versions 1.1 2
+        }
     }
 }
 
