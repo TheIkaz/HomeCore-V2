@@ -37,12 +37,8 @@
 # Este subdominio NO está protegido por forward auth
 # (es el propio proveedor de identidad)
 http://auth.{$DOMINIO} {
-    reverse_proxy authentik-server:9000 {
-        header_up X-Forwarded-Proto https
-        transport http {
-            versions 1.1 2
-        }
-    }
+    header_up X-Forwarded-Proto https
+    reverse_proxy authentik-server:9000
 }
 
 
