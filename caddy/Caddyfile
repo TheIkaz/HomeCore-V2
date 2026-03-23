@@ -1,0 +1,76 @@
+# HomeCore — Caddyfile
+# ─────────────────────────────────────────────────────────────────
+# Reverse proxy principal del sistema.
+# Gestiona el enrutamiento por subdominio y la autenticación
+# delegada a Authentik mediante forward auth.
+#
+# Variables de entorno usadas:
+#   DOMINIO — dominio principal (ej. tudominio.com)
+#
+# Subdominios configurados:
+#   auth.{$DOMINIO}      → Authentik (login y panel de admin)
+#   homecore.{$DOMINIO}  → HomeCore dashboard  [Fase 2]
+#   files.{$DOMINIO}     → Nextcloud            [Fase 3]
+#   media.{$DOMINIO}     → Jellyfin             [Fase 3]
+#   docs.{$DOMINIO}      → Paperless-ngx        [Fase 3]
+# ─────────────────────────────────────────────────────────────────
+
+
+# ── Snippet: forward auth hacia Authentik ─────────────────────────
+# Incluir con `import autenticacion` en cualquier bloque de servicio
+# para protegerlo con el login de Authentik.
+#
+# Requiere que el outpost de Authentik esté configurado
+# (se hace desde la UI de Authentik — Fase 1, paso final).
+(autenticacion) {
+    forward_auth authentik-server:9000 {
+        uri /outpost.goauthentik.io/auth/caddy
+        copy_headers X-Authentik-Username X-Authentik-Groups X-Authentik-Email \
+                     X-Authentik-Name X-Authentik-Uid
+        trusted_proxies private_ranges
+    }
+}
+
+
+# ── Authentik — panel de login y administración ───────────────────
+# Accesible en auth.tudominio.com
+# Este subdominio NO está protegido por forward auth
+# (es el propio proveedor de identidad)
+auth.{$DOMINIO} {
+    reverse_proxy authentik-server:9000
+}
+
+
+# ── HomeCore — dashboard principal ───────────────────────────────
+# [Fase 2] Descomentar cuando HomeCore esté desplegado
+#
+# homecore.{$DOMINIO} {
+#     import autenticacion
+#     reverse_proxy homecore:5000
+# }
+
+
+# ── Nextcloud — archivos ──────────────────────────────────────────
+# [Fase 3] Descomentar cuando Nextcloud esté desplegado
+# Nextcloud gestiona su propio SSO con Authentik vía OIDC.
+# No usa forward_auth — tiene integración nativa.
+#
+# files.{$DOMINIO} {
+#     reverse_proxy nextcloud:80
+# }
+
+
+# ── Jellyfin — streaming de media ────────────────────────────────
+# [Fase 3] Descomentar cuando Jellyfin esté desplegado
+#
+# media.{$DOMINIO} {
+#     reverse_proxy jellyfin:8096
+# }
+
+
+# ── Paperless-ngx — gestión documental ───────────────────────────
+# [Fase 3] Descomentar cuando Paperless esté desplegado
+#
+# docs.{$DOMINIO} {
+#     reverse_proxy paperless:8000
+# }

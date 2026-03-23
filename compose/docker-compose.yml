@@ -1,0 +1,159 @@
+# HomeCore — Docker Compose
+# Fase 1: Caddy + Authentik + Cloudflare Tunnel
+#
+# Rutas de volúmenes relativas a este fichero (/srv/homecore/compose/)
+# El fichero .env debe estar en la misma carpeta que este fichero.
+#
+# Arranque:
+#   docker compose up -d
+# Parada:
+#   docker compose down
+# Logs:
+#   docker compose logs -f [servicio]
+
+services:
+
+  # ─────────────────────────────────────────
+  # Base de datos de Authentik
+  # ─────────────────────────────────────────
+  postgresql:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    container_name: homecore-postgresql
+    environment:
+      POSTGRES_DB: ${AUTHENTIK_DB_NAME}
+      POSTGRES_USER: ${AUTHENTIK_DB_USER}
+      POSTGRES_PASSWORD: ${AUTHENTIK_DB_PASSWORD}
+    volumes:
+      - ../authentik/postgresql:/var/lib/postgresql/data
+    networks:
+      - homecore
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d ${AUTHENTIK_DB_NAME} -U ${AUTHENTIK_DB_USER}"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+
+  # ─────────────────────────────────────────
+  # Caché de Authentik
+  # ─────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    container_name: homecore-redis
+    command: --save 60 1 --loglevel warning
+    volumes:
+      - ../authentik/redis:/data
+    networks:
+      - homecore
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping | grep PONG"]
+      interval: 30s
+      timeout: 3s
+      retries: 5
+
+  # ─────────────────────────────────────────
+  # Authentik — servidor web y API
+  # ─────────────────────────────────────────
+  authentik-server:
+    image: ghcr.io/goauthentik/server:2024.12
+    restart: unless-stopped
+    container_name: homecore-authentik-server
+    command: server
+    environment:
+      AUTHENTIK_REDIS__HOST: redis
+      AUTHENTIK_POSTGRESQL__HOST: postgresql
+      AUTHENTIK_POSTGRESQL__USER: ${AUTHENTIK_DB_USER}
+      AUTHENTIK_POSTGRESQL__PASSWORD: ${AUTHENTIK_DB_PASSWORD}
+      AUTHENTIK_POSTGRESQL__NAME: ${AUTHENTIK_DB_NAME}
+      AUTHENTIK_SECRET_KEY: ${AUTHENTIK_SECRET_KEY}
+      AUTHENTIK_ERROR_REPORTING__ENABLED: "false"
+      # Credenciales del primer admin — solo se aplican en el arranque inicial
+      AUTHENTIK_BOOTSTRAP_PASSWORD: ${AUTHENTIK_BOOTSTRAP_PASSWORD}
+      AUTHENTIK_BOOTSTRAP_EMAIL: ${AUTHENTIK_BOOTSTRAP_EMAIL}
+    volumes:
+      - ../authentik/media:/media
+      - ../authentik/templates:/templates
+    # Puerto 9000 expuesto para acceso directo vía ZeroTier durante el setup
+    ports:
+      - "9000:9000"
+    networks:
+      - homecore
+    depends_on:
+      postgresql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  # ─────────────────────────────────────────
+  # Authentik — worker de tareas en segundo plano
+  # ─────────────────────────────────────────
+  authentik-worker:
+    image: ghcr.io/goauthentik/server:2024.12
+    restart: unless-stopped
+    container_name: homecore-authentik-worker
+    command: worker
+    environment:
+      AUTHENTIK_REDIS__HOST: redis
+      AUTHENTIK_POSTGRESQL__HOST: postgresql
+      AUTHENTIK_POSTGRESQL__USER: ${AUTHENTIK_DB_USER}
+      AUTHENTIK_POSTGRESQL__PASSWORD: ${AUTHENTIK_DB_PASSWORD}
+      AUTHENTIK_POSTGRESQL__NAME: ${AUTHENTIK_DB_NAME}
+      AUTHENTIK_SECRET_KEY: ${AUTHENTIK_SECRET_KEY}
+      AUTHENTIK_ERROR_REPORTING__ENABLED: "false"
+    # El worker necesita acceso a Docker para gestionar outposts
+    user: root
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ../authentik/media:/media
+      - ../authentik/certs:/certs
+      - ../authentik/templates:/templates
+    networks:
+      - homecore
+    depends_on:
+      postgresql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  # ─────────────────────────────────────────
+  # Caddy — reverse proxy y TLS
+  # ─────────────────────────────────────────
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    container_name: homecore-caddy
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ../caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - ../caddy/data:/data
+      - ../caddy/config:/config
+    networks:
+      - homecore
+    depends_on:
+      - authentik-server
+
+  # ─────────────────────────────────────────
+  # Cloudflare Tunnel — acceso remoto sin puertos abiertos
+  # Requiere CLOUDFLARE_TUNNEL_TOKEN en el .env
+  # Comentar este servicio hasta tener el token de Cloudflare
+  # ─────────────────────────────────────────
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    restart: unless-stopped
+    container_name: homecore-cloudflared
+    command: tunnel --no-autoupdate run
+    environment:
+      TUNNEL_TOKEN: ${CLOUDFLARE_TUNNEL_TOKEN}
+    networks:
+      - homecore
+    depends_on:
+      - caddy
+
+networks:
+  homecore:
+    driver: bridge
+    name: homecore
