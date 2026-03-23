@@ -42,12 +42,10 @@ auth.{$DOMINIO} {
 
 
 # ── HomeCore — dashboard principal ───────────────────────────────
-# [Fase 2] Descomentar cuando HomeCore esté desplegado
-#
-# homecore.{$DOMINIO} {
-#     import autenticacion
-#     reverse_proxy homecore:5000
-# }
+homecore.{$DOMINIO} {
+    import autenticacion
+    reverse_proxy homecore:5000
+}
 
 
 # ── Nextcloud — archivos ──────────────────────────────────────────

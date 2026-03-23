@@ -137,6 +137,24 @@ services:
       - authentik-server
 
   # ─────────────────────────────────────────
+  # HomeCore — dashboard principal (Flask + React)
+  # ─────────────────────────────────────────
+  homecore:
+    build:
+      context: ../homecore
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    container_name: homecore-app
+    environment:
+      DATABASE_PATH: /data/homecore.db
+    volumes:
+      - ../homecore/data:/data
+    networks:
+      - homecore
+    depends_on:
+      - authentik-server
+
+  # ─────────────────────────────────────────
   # Cloudflare Tunnel — acceso remoto sin puertos abiertos
   # Requiere CLOUDFLARE_TUNNEL_TOKEN en el .env
   # Comentar este servicio hasta tener el token de Cloudflare
