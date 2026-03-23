@@ -37,12 +37,14 @@
 # Este subdominio NO está protegido por forward auth
 # (es el propio proveedor de identidad)
 auth.{$DOMINIO} {
+    tls internal
     reverse_proxy authentik-server:9000
 }
 
 
 # ── HomeCore — dashboard principal ───────────────────────────────
 homecore.{$DOMINIO} {
+    tls internal
     import autenticacion
     reverse_proxy homecore:5000
 }
