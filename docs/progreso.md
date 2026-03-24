@@ -1,6 +1,6 @@
 # HomeCore V2 — Estado del proyecto
 
-**Última actualización: 25 marzo 2026 (noche)**
+**Última actualización: 25 marzo 2026 (madrugada)**
 Repo: https://github.com/TheIkaz/HomeCore-V2
 
 ---
@@ -38,6 +38,12 @@ Repo: https://github.com/TheIkaz/HomeCore-V2
 
 ### Docker
 - `homecore/Dockerfile` — build multi-etapa: Node construye React, Python sirve todo con Gunicorn
+
+### Navegación y Dashboard
+- Sidebar eliminado — sustituido por barra superior fina con icono de casa (→ `/`)
+- Dashboard muestra el catálogo de apps dinámico: Inventario (interno), Archivos, Media, Documentos
+- URLs internas usan React Router Link; URLs externas abren en nueva pestaña
+- Fix: grupos de Authentik llegan en formato `Nombre|slug` — se parsea el slug correctamente
 
 ### Despliegue en producción (✅ COMPLETADO — 24 marzo 2026)
 - Sistema desplegado en Raspberry Pi 4 (8GB, 1TB SSD en `/srv/homecore`)
