@@ -61,6 +61,7 @@ def _seed_apps():
         return
 
     apps_iniciales = [
+        ("inventario", "Inventario",  "/inventario",                "Package",    "familia"),
         ("nextcloud",  "Archivos",    "https://files.theikaz.com",  "FolderOpen", "familia"),
         ("jellyfin",   "Media",       "https://media.theikaz.com",  "Play",       "familia"),
         ("paperless",  "Documentos",  "https://docs.theikaz.com",   "FileText",   "familia"),

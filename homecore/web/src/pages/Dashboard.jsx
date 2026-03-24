@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import * as Icons from "lucide-react";
 import { getApps } from "../api/apps";
 import styles from "./Dashboard.module.css";
@@ -35,11 +36,19 @@ export default function Dashboard() {
 
 function AppCard({ app }) {
   const Icon = Icons[app.icono] ?? Icons.Box;
-
-  return (
-    <a href={app.url} className={styles.card} target="_blank" rel="noopener noreferrer">
+  const contenido = (
+    <>
       <Icon size={32} className={styles.icono} />
       <span className={styles.nombre}>{app.nombre_visible}</span>
+    </>
+  );
+
+  if (app.url.startsWith("/")) {
+    return <Link to={app.url} className={styles.card}>{contenido}</Link>;
+  }
+  return (
+    <a href={app.url} className={styles.card} target="_blank" rel="noopener noreferrer">
+      {contenido}
     </a>
   );
 }
