@@ -68,8 +68,9 @@ http://media.{$DOMINIO} {
 
 
 # ── Paperless-ngx — gestión documental ───────────────────────────
-# Sin forward auth — Paperless gestiona su propio login.
-# OIDC con Authentik se configura por variables de entorno tras el despliegue.
+# Forward auth de Authentik. Paperless lee X-Authentik-Username para identificar
+# al usuario automáticamente — sin pantalla de login propia.
 http://docs.{$DOMINIO} {
+    import autenticacion
     reverse_proxy paperless:8000
 }
