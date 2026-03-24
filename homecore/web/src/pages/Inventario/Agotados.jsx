@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { getAgotados, modificarProducto } from "../../api/inventario";
 import styles from "./Inventario.module.css";
 
 export default function Agotados() {
+  const navigate = useNavigate();
   const [productos, setProductos] = useState([]);
 
   const cargar = () => getAgotados().then((d) => setProductos(d.datos));
@@ -13,6 +15,7 @@ export default function Agotados() {
 
   return (
     <div>
+      <button className={styles.btnVolver} onClick={() => navigate("/inventario")}>← Volver</button>
       <h1 className={styles.titulo}>Productos agotados</h1>
       {productos.length === 0
         ? <p className={styles.vacio}>No hay productos agotados.</p>

@@ -5,13 +5,14 @@ from .blueprints.apps import apps_bp
 from .blueprints.inventario import inventario_bp
 from .blueprints.configuracion import configuracion_bp
 
+_DIST = os.path.join(os.path.dirname(__file__), "../web/dist")
+
 
 def create_app():
-    app = Flask(
-        __name__,
-        static_folder=os.path.join(os.path.dirname(__file__), "../web/dist"),
-        static_url_path=""
-    )
+    # static_folder=None para que Flask no registre su propio handler de
+    # ficheros estáticos, que interceptaría rutas de React Router y devolvería
+    # 404 cuando no encuentra el fichero (ej. refresco en /inventario/lista).
+    app = Flask(__name__, static_folder=None)
 
     init_db(app)
 
@@ -19,13 +20,12 @@ def create_app():
     app.register_blueprint(inventario_bp, url_prefix="/api/inventario")
     app.register_blueprint(configuracion_bp, url_prefix="/api/configuracion")
 
-    # Sirve el frontend React para cualquier ruta no-API
     @app.route("/", defaults={"path": ""})
     @app.route("/<path:path>")
     def serve_frontend(path):
-        dist = app.static_folder
-        if path and os.path.exists(os.path.join(dist, path)):
-            return send_from_directory(dist, path)
-        return send_from_directory(dist, "index.html")
+        full = os.path.join(_DIST, path)
+        if path and os.path.isfile(full):
+            return send_from_directory(_DIST, path)
+        return send_from_directory(_DIST, "index.html")
 
     return app

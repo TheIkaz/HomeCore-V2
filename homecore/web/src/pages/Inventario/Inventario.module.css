@@ -154,3 +154,96 @@
 
 .errorMsg { color: var(--color-danger); font-size: 0.875rem; }
 .vacio    { color: var(--color-muted); }
+
+/* Botón Volver */
+.btnVolver {
+  background: none;
+  border: none;
+  color: var(--color-muted);
+  font-size: 0.85rem;
+  padding: 0;
+  margin-bottom: 0.75rem;
+  cursor: pointer;
+  display: inline-block;
+}
+.btnVolver:hover { color: var(--color-text); }
+
+/* Controles +/− de cantidad en la tabla */
+.cantidadControl {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.btnCantidad {
+  background: none;
+  border: 1px solid var(--color-border);
+  color: var(--color-muted);
+  width: 1.6rem;
+  height: 1.6rem;
+  border-radius: 0.25rem;
+  font-size: 1rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.btnCantidad:hover { border-color: var(--color-accent); color: var(--color-text); }
+
+/* Lista de la compra — ítem rediseñado */
+.itemNombre { flex: 1; }
+
+.itemCompraAcciones {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.inputCantidadCompra {
+  width: 4rem;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 0.375rem;
+  color: var(--color-text);
+  padding: 0.3rem 0.5rem;
+  font-size: 0.85rem;
+  text-align: center;
+}
+.inputCantidadCompra:focus { outline: none; border-color: var(--color-accent); }
+
+.unidadCompra { font-size: 0.8rem; color: var(--color-muted); min-width: 1.5rem; }
+
+/* Panel de añadir artículos a la lista */
+.panelAnadir {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: 0.75rem 1rem;
+  margin-bottom: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+.itemDisponible {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.35rem 0;
+  border-bottom: 1px solid var(--color-border);
+  font-size: 0.9rem;
+}
+.itemDisponible:last-child { border-bottom: none; }
+.itemDisponible button {
+  background: none;
+  border: 1px solid var(--color-border);
+  color: var(--color-muted);
+  padding: 0.2rem 0.6rem;
+  border-radius: 0.375rem;
+  font-size: 0.8rem;
+}
+.itemDisponible button:hover { border-color: var(--color-accent); color: var(--color-text); }

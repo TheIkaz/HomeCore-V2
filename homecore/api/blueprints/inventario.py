@@ -1,3 +1,4 @@
+import uuid
 from flask import Blueprint, jsonify, request
 from ..database import get_db
 
@@ -80,6 +81,8 @@ def obtener(id_producto):
 @inventario_bp.route("/", methods=["POST"])
 def crear():
     data = request.get_json(silent=True) or {}
+    if not data.get("id"):
+        data["id"] = str(uuid.uuid4())
     error = _validar_producto(data, nuevo=True)
     if error:
         return jsonify({"status": "error", "mensaje": error}), 400
@@ -164,7 +167,7 @@ def eliminar(id_producto):
 # ── Helpers ────────────────────────────────────────────────────────
 
 def _validar_producto(data, nuevo):
-    campos_requeridos = ["id", "nombre", "categoria", "cantidad", "unidad", "umbral_agotado"]
+    campos_requeridos = ["nombre", "categoria", "cantidad", "unidad", "umbral_agotado"]
     if nuevo:
         for campo in campos_requeridos:
             if campo not in data:

@@ -5,7 +5,6 @@ import styles from "./Inventario.module.css";
 export default function ProductoForm({ producto, onGuardado, onCancelar }) {
   const esNuevo = !producto.id;
   const [form, setForm] = useState({
-    id:              producto.id             ?? "",
     nombre:          producto.nombre         ?? "",
     categoria:       producto.categoria      ?? "",
     cantidad:        producto.cantidad       ?? 0,
@@ -43,12 +42,6 @@ export default function ProductoForm({ producto, onGuardado, onCancelar }) {
     <form className={styles.form} onSubmit={guardar}>
       <h2 className={styles.formTitulo}>{esNuevo ? "Nuevo producto" : "Editar producto"}</h2>
 
-      {esNuevo && (
-        <div className={styles.campo}>
-          <label>ID</label>
-          <input name="id" value={form.id} onChange={cambiar} required />
-        </div>
-      )}
       <div className={styles.campo}>
         <label>Nombre</label>
         <input name="nombre" value={form.nombre} onChange={cambiar} required />
