@@ -110,9 +110,9 @@ SSO:
 |---|---|---|
 | `auth.theikaz.com` | Authentik | ✅ Operativo |
 | `homecore.theikaz.com` | HomeCore dashboard | ✅ Operativo |
-| `files.theikaz.com` | Filebrowser | Comentado — Fase 3 |
-| `media.theikaz.com` | Jellyfin | Comentado — Fase 3 |
-| `docs.theikaz.com` | Paperless-ngx | Comentado — Fase 3 |
+| `files.theikaz.com` | Filebrowser | Pendiente despliegue — Fase 3 |
+| `media.theikaz.com` | Jellyfin | Pendiente despliegue — Fase 3 |
+| `docs.theikaz.com` | Paperless-ngx | Pendiente despliegue — Fase 3 |
 
 ---
 

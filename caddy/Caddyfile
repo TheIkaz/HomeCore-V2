@@ -51,27 +51,25 @@ http://homecore.{$DOMINIO} {
 
 
 # ── Filebrowser — explorador de ficheros ─────────────────────────
-# [Fase 3] Descomentar cuando Filebrowser esté desplegado
 # Protegido con forward auth de Authentik (igual que HomeCore).
-# Permite subir/descargar ficheros al SSD desde el navegador.
-#
-# http://files.{$DOMINIO} {
-#     import autenticacion
-#     reverse_proxy filebrowser:80
-# }
+# Filebrowser arranca sin auth propia (--noauth) — Caddy es la única capa de auth.
+http://files.{$DOMINIO} {
+    import autenticacion
+    reverse_proxy filebrowser:80
+}
 
 
 # ── Jellyfin — streaming de media ────────────────────────────────
-# [Fase 3] Descomentar cuando Jellyfin esté desplegado
-#
-# media.{$DOMINIO} {
-#     reverse_proxy jellyfin:8096
-# }
+# Sin forward auth — necesario para clientes nativos (apps de TV, móvil, Infuse).
+# Jellyfin gestiona su propio login. SSO con Authentik se configura desde su UI.
+http://media.{$DOMINIO} {
+    reverse_proxy jellyfin:8096
+}
 
 
 # ── Paperless-ngx — gestión documental ───────────────────────────
-# [Fase 3] Descomentar cuando Paperless esté desplegado
-#
-# docs.{$DOMINIO} {
-#     reverse_proxy paperless:8000
-# }
+# Sin forward auth — Paperless gestiona su propio login.
+# OIDC con Authentik se configura por variables de entorno tras el despliegue.
+http://docs.{$DOMINIO} {
+    reverse_proxy paperless:8000
+}
