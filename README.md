@@ -34,7 +34,9 @@ HomeCore-V2/
 │   └── restore.sh
 ├── docs/
 │   ├── arquitectura.md
-│   └── arranque_inicial.md
+│   ├── arranque_inicial.md
+│   ├── conexiones.md
+│   └── progreso.md
 ├── .gitignore
 └── README.md
 ```
@@ -61,6 +63,8 @@ docker compose -f /srv/homecore/compose/docker-compose.yml up -d
 
 - [Arquitectura del sistema](docs/arquitectura.md)
 - [Guía de arranque inicial](docs/arranque_inicial.md)
+- [Mapa de conexiones internas](docs/conexiones.md)
+- [Estado y progreso del proyecto](docs/progreso.md)
 
 ---
 
