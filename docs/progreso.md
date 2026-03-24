@@ -68,17 +68,26 @@ Repo: https://github.com/TheIkaz/HomeCore-V2
 ---
 
 ### Fase 3 — Servicios de contenido
+
 Añadir al `docker-compose.yml`:
-- **Nextcloud** + PostgreSQL propio (o reutilizar el de Authentik en BD separada)
-- **Jellyfin**
-- **Paperless-ngx** + Redis propio (o reutilizar)
+- **Filebrowser** — explorador de ficheros web. Monta `/filebrowser/data/` que contiene subcarpetas `media/` y `documentos/`. Autenticación via forward auth (igual que HomeCore, sin OIDC).
+- **Jellyfin** — streaming de media. Monta la carpeta `media/` de Filebrowser como biblioteca de solo lectura.
+- **Paperless-ngx** + Redis propio — gestión documental con OCR. Monta la carpeta `documentos/` de Filebrowser como bandeja de entrada.
+
+Flujo de uso previsto:
+1. El usuario sube archivos a `files.theikaz.com` (Filebrowser)
+2. Jellyfin detecta automáticamente los nuevos archivos en su biblioteca
+3. Paperless procesa los documentos de la carpeta de entrada con OCR
 
 Descomentar en el `Caddyfile`:
-- `files.theikaz.com` → Nextcloud
-- `media.theikaz.com` → Jellyfin
-- `docs.theikaz.com` → Paperless
+- `files.theikaz.com` → Filebrowser (con forward auth)
+- `media.theikaz.com` → Jellyfin (con forward auth)
+- `docs.theikaz.com` → Paperless (OIDC nativo)
 
-Configurar SSO con Authentik en cada servicio (OIDC para Nextcloud y Paperless, plugin para Jellyfin).
+SSO:
+- Filebrowser: forward auth de Caddy (sin configuración adicional)
+- Jellyfin: plugin SSO instalable desde la UI tras el despliegue
+- Paperless: OIDC nativo via variables de entorno
 
 ### Fase 4 — Estabilidad y backups
 - `scripts/backup.sh` — Restic + Rclone
@@ -101,7 +110,7 @@ Configurar SSO con Authentik en cada servicio (OIDC para Nextcloud y Paperless, 
 |---|---|---|
 | `auth.theikaz.com` | Authentik | ✅ Operativo |
 | `homecore.theikaz.com` | HomeCore dashboard | ✅ Operativo |
-| `files.theikaz.com` | Nextcloud | Comentado — Fase 3 |
+| `files.theikaz.com` | Filebrowser | Comentado — Fase 3 |
 | `media.theikaz.com` | Jellyfin | Comentado — Fase 3 |
 | `docs.theikaz.com` | Paperless-ngx | Comentado — Fase 3 |
 

@@ -13,7 +13,7 @@ Centraliza el acceso a aplicaciones y servicios del hogar bajo un único punto d
 | Autenticación | Authentik (SSO) |
 | Acceso remoto | Cloudflare Tunnel (familia) + ZeroTier (admin) |
 | Hub / dashboard | HomeCore — Flask + React |
-| Archivos | Nextcloud |
+| Archivos | Filebrowser |
 | Streaming | Jellyfin |
 | Documentos | Paperless-ngx |
 | Backups | Restic + Rclone |

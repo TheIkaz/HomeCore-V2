@@ -10,7 +10,7 @@
 # Subdominios configurados:
 #   auth.{$DOMINIO}      → Authentik (login y panel de admin)
 #   homecore.{$DOMINIO}  → HomeCore dashboard  [Fase 2]
-#   files.{$DOMINIO}     → Nextcloud            [Fase 3]
+#   files.{$DOMINIO}     → Filebrowser          [Fase 3]
 #   media.{$DOMINIO}     → Jellyfin             [Fase 3]
 #   docs.{$DOMINIO}      → Paperless-ngx        [Fase 3]
 # ─────────────────────────────────────────────────────────────────
@@ -50,13 +50,14 @@ http://homecore.{$DOMINIO} {
 }
 
 
-# ── Nextcloud — archivos ──────────────────────────────────────────
-# [Fase 3] Descomentar cuando Nextcloud esté desplegado
-# Nextcloud gestiona su propio SSO con Authentik vía OIDC.
-# No usa forward_auth — tiene integración nativa.
+# ── Filebrowser — explorador de ficheros ─────────────────────────
+# [Fase 3] Descomentar cuando Filebrowser esté desplegado
+# Protegido con forward auth de Authentik (igual que HomeCore).
+# Permite subir/descargar ficheros al SSD desde el navegador.
 #
-# files.{$DOMINIO} {
-#     reverse_proxy nextcloud:80
+# http://files.{$DOMINIO} {
+#     import autenticacion
+#     reverse_proxy filebrowser:80
 # }
 
 

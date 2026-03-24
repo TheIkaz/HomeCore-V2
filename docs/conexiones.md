@@ -71,7 +71,7 @@ Todos los subdominios protegidos incluyen `import autenticacion`. El subdominio 
 |---|---|---|
 | `auth.theikaz.com` | `authentik-server:9000` | No |
 | `homecore.theikaz.com` | `homecore:5000` | Sí |
-| `files.theikaz.com` | `nextcloud:80` | No (SSO nativo OIDC) — Fase 3 |
+| `files.theikaz.com` | `filebrowser:80` | Sí (forward auth igual que HomeCore) — Fase 3 |
 | `media.theikaz.com` | `jellyfin:8096` | No (plugin SSO) — Fase 3 |
 | `docs.theikaz.com` | `paperless:8000` | No (SSO nativo OIDC) — Fase 3 |
 

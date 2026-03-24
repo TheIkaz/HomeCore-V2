@@ -70,7 +70,7 @@ Todos los servicios corren en contenedores Docker, orquestados con Docker Compos
 | Reverse proxy | Caddy | TLS automático, configuración simple, integración nativa con Authentik. |
 | Autenticación | Authentik | SSO, gestión de usuarios con UI web, MFA, sesiones por dispositivo. |
 | Hub / dashboard | HomeCore (Flask + React) | Desarrollo propio. Pantalla principal y módulos personalizados. |
-| Archivos | Nextcloud | Sincronización de archivos, app móvil y escritorio. |
+| Archivos | Filebrowser | Explorador de ficheros web ligero. Subir y descargar contenido al SSD desde navegador o móvil. |
 | Streaming media | Jellyfin | Películas y música. Libre, sin suscripción. |
 | Documentos / OCR | Paperless-ngx | Gestión de documentos escaneados con OCR y búsqueda. |
 | Backups | Restic + Rclone | Backups incrementales cifrados con copia offsite. |
@@ -100,7 +100,7 @@ Cada servicio tiene su propio subdominio bajo el dominio principal. Caddy enruta
 |---|---|
 | homecore.tudominio.com | HomeCore — dashboard principal |
 | auth.tudominio.com | Authentik — login y panel de admin |
-| files.tudominio.com | Nextcloud |
+| files.tudominio.com | Filebrowser |
 | media.tudominio.com | Jellyfin |
 | docs.tudominio.com | Paperless-ngx |
 
@@ -124,9 +124,8 @@ Consecuencias prácticas:
 
 | Grupo | Acceso |
 |---|---|
-| familia | HomeCore, Nextcloud (carpetas compartidas), Jellyfin (todas las bibliotecas) |
+| familia | HomeCore, Filebrowser (acceso al SSD), Jellyfin (todas las bibliotecas), Paperless |
 | admin | Todo lo anterior más el panel de administración de Authentik y acceso SSH vía ZeroTier |
-| [usuario] | Carpeta privada en Nextcloud, documentos privados en Paperless |
 
 ### 6.3 Gestión de dispositivos y sesiones
 
@@ -196,16 +195,16 @@ El catálogo es una tabla en SQLite que HomeCore consulta para saber qué apps e
 
 ## 8. Servicios de contenido
 
-### 8.1 Nextcloud — archivos
+### 8.1 Filebrowser — archivos
 
 | Aspecto | Detalle |
 |---|---|
-| Función | Sincronización de archivos, fotos y documentos. Equivalente a Dropbox privado. |
-| Acceso | Navegador, app móvil (iOS/Android) y cliente de escritorio. |
-| Autenticación | SSO via Authentik (OIDC nativo). |
-| Carpetas | Privada por usuario (automática). Compartidas por grupo (configuradas por admin). |
-| Base de datos | PostgreSQL (contenedor propio dentro de Docker Compose). |
-| Datos | SSD: /srv/homecore/data/nextcloud/ |
+| Función | Explorador de ficheros web. Subir, descargar, crear carpetas y mover archivos en el SSD desde el navegador o el móvil. Actúa como "cargador" de contenido para Jellyfin y Paperless. |
+| Acceso | Navegador (escritorio y móvil). Sin app adicional. |
+| Autenticación | Forward auth de Authentik vía Caddy (igual que HomeCore). Sin OIDC. |
+| Carpetas expuestas | `/srv/homecore/homecore/filebrowser/data/` — contiene subcarpetas `media/` y `documentos/` que montan Jellyfin y Paperless respectivamente. |
+| Base de datos | SQLite ligera para configuración interna (usuarios, preferencias). |
+| Flujo típico | Subir película → Jellyfin la detecta automáticamente. Subir PDF → Paperless lo indexa con OCR. |
 
 ### 8.2 Jellyfin — streaming de media
 
@@ -240,11 +239,11 @@ El catálogo es una tabla en SQLite que HomeCore consulta para saber qué apps e
 | /srv/homecore/caddy/ | Caddyfile y certificados TLS |
 | /srv/homecore/authentik/ | Configuración y base de datos de Authentik |
 | /srv/homecore/homecore/ | Código fuente de HomeCore (repo clonado) |
-| /srv/homecore/data/nextcloud/ | Datos y base de datos de Nextcloud |
-| /srv/homecore/data/paperless/ | Documentos y base de datos de Paperless |
-| /srv/homecore/media/peliculas/ | Archivos de películas para Jellyfin |
-| /srv/homecore/media/series/ | Archivos de series para Jellyfin |
-| /srv/homecore/media/musica/ | Archivos de música para Jellyfin |
+| /srv/homecore/homecore/filebrowser/data/media/ | Archivos de media (películas, series, música) — compartido con Jellyfin |
+| /srv/homecore/homecore/filebrowser/data/documentos/ | Documentos para Paperless (PDFs, facturas, recibos) |
+| /srv/homecore/homecore/filebrowser/db/ | Base de datos SQLite de Filebrowser |
+| /srv/homecore/homecore/paperless/data/ | Datos internos y BD de Paperless-ngx |
+| /srv/homecore/homecore/paperless/media/ | Archivos procesados por Paperless |
 | /srv/homecore/backups/ | Snapshots locales de Restic |
 | /srv/homecore/logs/ | Logs centralizados de los servicios |
 
