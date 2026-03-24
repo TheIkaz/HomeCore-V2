@@ -248,6 +248,10 @@ services:
       PAPERLESS_URL: https://docs.${DOMINIO}
       PAPERLESS_ADMIN_USER: ${PAPERLESS_ADMIN_USER}
       PAPERLESS_ADMIN_PASSWORD: ${PAPERLESS_ADMIN_PASSWORD}
+      PAPERLESS_SOCIALACCOUNT_PROVIDERS: >-
+        {"openid_connect": {"APPS": [{"provider_id": "authentik", "name": "Authentik",
+        "client_id": "${PAPERLESS_OIDC_CLIENT_ID}", "secret": "${PAPERLESS_OIDC_SECRET}",
+        "settings": {"server_url": "https://auth.${DOMINIO}/application/o/paperless/.well-known/openid-configuration"}}]}}
     volumes:
       - ../paperless/data:/usr/src/paperless/data
       - ../paperless/media:/usr/src/paperless/media
