@@ -8,7 +8,13 @@ def get_usuario_actual():
     por lo que estas cabeceras siempre están presentes en producción.
     """
     grupos_raw = request.headers.get("X-Authentik-Groups", "")
-    grupos = [g.strip() for g in grupos_raw.split(",") if g.strip()]
+    grupos = []
+    for entrada in grupos_raw.split(","):
+        entrada = entrada.strip()
+        if not entrada:
+            continue
+        # Authentik envía "Nombre visible|slug" — usamos el slug
+        grupos.append(entrada.split("|")[-1].strip() if "|" in entrada else entrada)
 
     return {
         "username": request.headers.get("X-Authentik-Username", ""),

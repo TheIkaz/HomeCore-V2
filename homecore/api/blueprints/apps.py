@@ -34,6 +34,5 @@ def catalogo():
     return jsonify({
         "status":  "ok",
         "usuario": usuario["username"],
-        "grupos":  usuario["grupos"],
         "datos":   resultado,
     })
