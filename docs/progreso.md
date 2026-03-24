@@ -1,6 +1,6 @@
 # HomeCore V2 — Estado del proyecto
 
-**Última actualización: 24 marzo 2026**
+**Última actualización: 25 marzo 2026**
 Repo: https://github.com/TheIkaz/HomeCore-V2
 
 ---
@@ -120,6 +120,83 @@ AUTHENTIK_BOOTSTRAP_EMAIL=admin@theikaz.com
 AUTHENTIK_BOOTSTRAP_PASSWORD=<contraseña segura>
 CLOUDFLARE_TUNNEL_TOKEN=<token del panel de Cloudflare>
 ```
+
+---
+
+## Comandos de operación en la Pi
+
+> **IMPORTANTE:** Leer esta sección antes de tocar cualquier contenedor.
+
+### Por qué importa el comando exacto
+
+El `docker-compose.yml` usa rutas relativas para los volúmenes (`../authentik/`, `../caddy/`, `../homecore/`). Docker Compose resuelve esas rutas relativas **desde el directorio del fichero compose**, no desde el directorio de trabajo. Si se ejecuta el comando con una ruta distinta a la que se usó al crear los contenedores por primera vez, los volúmenes apuntan a directorios distintos y los datos (base de datos de Authentik, SQLite de HomeCore) parecen desaparecer — en realidad están en otra ruta.
+
+El comando canónico que se usó para el despliegue inicial y que **debe usarse siempre** es:
+
+```bash
+docker compose \
+  -f /srv/homecore/homecore/compose/docker-compose.yml \
+  --env-file /srv/homecore/compose/.env \
+  up -d
+```
+
+Con este comando:
+- El fichero compose se lee desde el repo (`/srv/homecore/homecore/compose/`)
+- Las variables de entorno se leen desde `/srv/homecore/compose/.env` (nunca en el repo)
+- Los volúmenes resuelven a `/srv/homecore/homecore/authentik/`, `/srv/homecore/homecore/caddy/`, etc.
+
+### Comandos habituales
+
+**Arrancar o actualizar todos los servicios:**
+```bash
+docker compose \
+  -f /srv/homecore/homecore/compose/docker-compose.yml \
+  --env-file /srv/homecore/compose/.env \
+  up -d
+```
+
+**Actualizar código y reconstruir solo HomeCore:**
+```bash
+cd /srv/homecore/homecore && git pull
+docker compose \
+  -f /srv/homecore/homecore/compose/docker-compose.yml \
+  --env-file /srv/homecore/compose/.env \
+  up -d --build homecore
+```
+
+**Ver logs de un servicio:**
+```bash
+docker compose \
+  -f /srv/homecore/homecore/compose/docker-compose.yml \
+  --env-file /srv/homecore/compose/.env \
+  logs -f homecore
+```
+
+**Parar todos los servicios:**
+```bash
+docker compose \
+  -f /srv/homecore/homecore/compose/docker-compose.yml \
+  --env-file /srv/homecore/compose/.env \
+  down
+```
+
+### Acceso de emergencia a Authentik
+
+Si el túnel de Cloudflare falla o `auth.theikaz.com` no responde, Authentik es accesible directamente vía ZeroTier:
+
+```
+http://10.147.18.210:9000/if/admin/
+```
+
+### Rutas de datos persistentes en el SSD
+
+| Dato | Ruta real en el SSD |
+|---|---|
+| Base de datos de Authentik (PostgreSQL) | `/srv/homecore/homecore/authentik/postgresql/` |
+| Media y templates de Authentik | `/srv/homecore/homecore/authentik/media/` |
+| Certificados TLS de Authentik | `/srv/homecore/homecore/authentik/certs/` |
+| Datos y config de Caddy | `/srv/homecore/homecore/caddy/data/` |
+| Base de datos SQLite de HomeCore | `/srv/homecore/homecore/homecore/data/` |
 
 ---
 
