@@ -51,6 +51,23 @@ Repo: https://github.com/TheIkaz/HomeCore-V2
 
 ## Qué falta
 
+### Mejoras pendientes — HomeCore dashboard
+
+1. **Refresco de página devuelve 404** — React Router usa rutas del lado del cliente; al refrescar en `/inventario/lista` el servidor no encuentra esa ruta. Fix: configurar Caddy (o Flask) para que sirva siempre `index.html` en cualquier ruta bajo `homecore.theikaz.com`.
+
+2. **Botones +/− de cantidad en el inventario** — En la vista de lista completa, añadir botones `−` y `+` junto a la cantidad de cada producto para modificarla en vivo sin abrir el formulario de edición.
+
+3. **Lista de la compra mejorada**:
+   - Campo de cantidad a comprar en cada ítem de la lista
+   - Al marcar como comprado, actualizar la cantidad en el inventario sumando lo comprado
+   - Botón para añadir artículos a la lista manualmente (sin que estén agotados), para compras espontáneas
+
+4. **Botones de navegación Atrás** — Añadir botón de retroceso en las pantallas interiores del inventario (lista, agotados, lista de la compra, formulario) para no tener que volver al inicio manualmente.
+
+5. **ID automático al crear producto** — El formulario de alta no debería pedir el ID al usuario; generarlo automáticamente en el backend (UUID o autoincremental).
+
+---
+
 ### Fase 3 — Servicios de contenido
 Añadir al `docker-compose.yml`:
 - **Nextcloud** + PostgreSQL propio (o reutilizar el de Authentik en BD separada)
