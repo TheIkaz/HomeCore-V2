@@ -25,6 +25,7 @@ def init_db(app):
     with app.app_context():
         _crear_tablas()
         _seed_apps()
+        _seed_categorias()
 
 
 def _crear_tablas():
@@ -38,6 +39,22 @@ def _crear_tablas():
             icono             TEXT NOT NULL,
             grupos_requeridos TEXT NOT NULL DEFAULT 'familia',
             activo            INTEGER NOT NULL DEFAULT 1
+        );
+
+        CREATE TABLE IF NOT EXISTS categorias_calendario (
+            id     INTEGER PRIMARY KEY AUTOINCREMENT,
+            nombre TEXT UNIQUE NOT NULL,
+            color  TEXT NOT NULL DEFAULT '#6366f1'
+        );
+
+        CREATE TABLE IF NOT EXISTS eventos_calendario (
+            id           INTEGER PRIMARY KEY AUTOINCREMENT,
+            titulo       TEXT NOT NULL,
+            fecha        TEXT NOT NULL,
+            hora         TEXT,
+            descripcion  TEXT,
+            categoria_id INTEGER REFERENCES categorias_calendario(id) ON DELETE SET NULL,
+            creado_por   TEXT NOT NULL
         );
 
         CREATE TABLE IF NOT EXISTS productos (
@@ -54,6 +71,24 @@ def _crear_tablas():
     db.commit()
 
 
+def _seed_categorias():
+    """Inserta categorías iniciales si la tabla está vacía."""
+    db = get_db()
+    if db.execute("SELECT COUNT(*) FROM categorias_calendario").fetchone()[0] > 0:
+        return
+    categorias = [
+        ("Médico",      "#ef4444"),
+        ("Ocio",        "#22c55e"),
+        ("Trabajo",     "#3b82f6"),
+        ("Cumpleaños",  "#f59e0b"),
+        ("Otros",       "#8b5cf6"),
+    ]
+    db.executemany(
+        "INSERT INTO categorias_calendario (nombre, color) VALUES (?,?)",
+        categorias
+    )
+    db.commit()
+
 def _seed_apps():
     """Inserta las apps iniciales si la tabla está vacía."""
     db = get_db()
@@ -61,6 +96,7 @@ def _seed_apps():
         return
 
     apps_iniciales = [
+        ("calendario",   "Calendario",    "/calendario",                      "Calendar",   "familia"),
         ("inventario",   "Inventario",    "/inventario",                      "Package",    "familia"),
         ("filebrowser",  "Archivos",      "https://files.theikaz.com",        "FolderOpen", "familia"),
         ("jellyfin",     "Media",         "https://media.theikaz.com/sso/OID/start/authentik", "Play", "familia"),

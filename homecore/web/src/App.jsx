@@ -6,6 +6,7 @@ import Agotados from "./pages/Inventario/Agotados";
 import ListaCompra from "./pages/Inventario/ListaCompra";
 import Invitar from "./pages/Admin/Invitar";
 import Sistema from "./pages/Admin/Sistema";
+import Calendario from "./pages/Calendario/Calendario";
 import Layout from "./components/Layout";
 
 export default function App() {
@@ -19,6 +20,7 @@ export default function App() {
         <Route path="/inventario/compra"     element={<ListaCompra />} />
         <Route path="/admin/invitar"          element={<Invitar />} />
         <Route path="/admin/sistema"          element={<Sistema />} />
+        <Route path="/calendario"             element={<Calendario />} />
       </Route>
     </Routes>
   );

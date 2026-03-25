@@ -5,6 +5,7 @@ from .blueprints.apps import apps_bp
 from .blueprints.inventario import inventario_bp
 from .blueprints.configuracion import configuracion_bp
 from .blueprints.admin import admin_bp
+from .blueprints.calendario import calendario_bp
 
 _DIST = os.path.join(os.path.dirname(__file__), "../web/dist")
 
@@ -21,6 +22,7 @@ def create_app():
     app.register_blueprint(inventario_bp, url_prefix="/api/inventario")
     app.register_blueprint(configuracion_bp, url_prefix="/api/configuracion")
     app.register_blueprint(admin_bp, url_prefix="/api/admin")
+    app.register_blueprint(calendario_bp, url_prefix="/api/calendario")
 
     @app.route("/", defaults={"path": ""})
     @app.route("/<path:path>")

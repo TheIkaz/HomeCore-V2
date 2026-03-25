@@ -1,0 +1,295 @@
+.pagina { max-width: 700px; }
+
+.cabecera {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.titulo {
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.mesActual {
+  font-size: 1rem;
+  font-weight: 600;
+  min-width: 160px;
+  text-align: center;
+}
+
+.btnNav {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+  border-radius: 0.375rem;
+  padding: 0.25rem 0.75rem;
+  font-size: 1.2rem;
+  cursor: pointer;
+}
+.btnNav:hover { border-color: var(--color-accent); }
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 3px;
+  margin-bottom: 1rem;
+}
+
+.cabDia {
+  text-align: center;
+  font-size: 0.75rem;
+  color: var(--color-muted);
+  padding: 0.25rem 0;
+  font-weight: 500;
+}
+
+.celdaVacia { background: transparent; }
+
+.celda {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 0.375rem;
+  padding: 0.4rem;
+  min-height: 52px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+  transition: border-color 0.15s;
+}
+.celda:hover { border-color: var(--color-accent); }
+.hoy { border-color: var(--color-accent) !important; }
+.hoy .numDia { color: var(--color-accent); font-weight: 700; }
+.seleccionado { background: color-mix(in srgb, var(--color-accent) 12%, var(--color-surface)); }
+
+.numDia { font-size: 0.8rem; }
+
+.puntos {
+  display: flex;
+  gap: 2px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.punto {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+/* Panel de eventos del día */
+.panel {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: 1rem;
+  margin-bottom: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.panelHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.25rem;
+}
+
+.panelTitulo { font-weight: 600; font-size: 0.95rem; }
+
+.evento {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--color-border);
+}
+.evento:last-child { border-bottom: none; }
+
+.eventoDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-top: 3px;
+}
+
+.eventoInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  flex: 1;
+}
+
+.eventoTitulo { font-size: 0.9rem; font-weight: 500; }
+.eventoHora   { font-size: 0.8rem; color: var(--color-muted); }
+.eventoDesc   { font-size: 0.8rem; color: var(--color-muted); }
+.eventoMeta   { font-size: 0.75rem; color: var(--color-muted); }
+
+.btnBorrar {
+  background: none;
+  border: none;
+  color: var(--color-muted);
+  cursor: pointer;
+  font-size: 0.85rem;
+  padding: 0.1rem 0.3rem;
+  border-radius: 0.25rem;
+}
+.btnBorrar:hover { color: var(--color-danger, #ef4444); }
+
+.vacio { font-size: 0.875rem; color: var(--color-muted); }
+
+/* Categorías */
+.panelCats {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: 1rem;
+  margin-bottom: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.listaCats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.chip {
+  font-size: 0.8rem;
+  color: #fff;
+  padding: 0.2rem 0.6rem;
+  border-radius: 1rem;
+  font-weight: 500;
+}
+
+.formCat {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+.formCat input[type="text"], .formCat input:not([type="color"]) {
+  flex: 1;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 0.375rem;
+  color: var(--color-text);
+  padding: 0.4rem 0.75rem;
+  font-size: 0.875rem;
+}
+
+.inputColor {
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--color-border);
+  border-radius: 0.375rem;
+  padding: 2px;
+  background: var(--color-bg);
+  cursor: pointer;
+}
+
+/* Modal */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.modal {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  width: 100%;
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.modalTitulo { font-size: 1.1rem; font-weight: 600; }
+
+.formEvento { display: flex; flex-direction: column; gap: 0.75rem; }
+
+.campo { display: flex; flex-direction: column; gap: 0.3rem; }
+.campo label { font-size: 0.85rem; color: var(--color-muted); }
+.campo input, .campo textarea {
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 0.375rem;
+  color: var(--color-text);
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+}
+.campo input:focus, .campo textarea:focus { outline: none; border-color: var(--color-accent); }
+.campo textarea { resize: vertical; font-family: inherit; }
+
+.select {
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 0.375rem;
+  color: var(--color-text);
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+}
+
+.modalAcciones {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+/* Botones */
+.btnPrimario {
+  background: var(--color-accent);
+  color: #fff;
+  border: none;
+  padding: 0.4rem 1rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.btnPrimario:hover { background: var(--color-accent-hover); }
+
+.btnSecundario {
+  background: var(--color-surface);
+  color: var(--color-muted);
+  border: 1px solid var(--color-border);
+  padding: 0.4rem 1rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+.btnSecundario:hover { color: var(--color-text); border-color: var(--color-text); }
+
+.error { color: var(--color-danger, #ef4444); font-size: 0.875rem; }
+
+.btnVolver {
+  background: none;
+  border: none;
+  color: var(--color-muted);
+  font-size: 0.85rem;
+  padding: 0;
+  margin-bottom: 0.75rem;
+  cursor: pointer;
+}
+.btnVolver:hover { color: var(--color-text); }
