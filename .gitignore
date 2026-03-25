@@ -35,6 +35,10 @@ node_modules/
 dist/
 build/
 
+# Iconos PWA generados en build
+homecore/web/public/icon-192.png
+homecore/web/public/icon-512.png
+
 # OS
 .DS_Store
 Thumbs.db
