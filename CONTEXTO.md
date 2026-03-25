@@ -28,7 +28,7 @@ Lee en este orden antes de hacer nada.
 - ✅ Fase 6.1 — Alta de usuarios desde HomeCore (formulario admin → API Authentik → usuario creado con contraseña)
 - ✅ Fase 6.2 — Persistencia de sesión (Login Stage → 30 días)
 
-**Próxima fase:** 9 — Monitorización de la Pi (solo admin)
+**Próxima fase:** 10 — Documento técnico detallado de arquitectura
 
 **Sistema en producción en:** Raspberry Pi 4 · 8 GB RAM · SSD 1 TB
 

@@ -135,9 +135,12 @@ Polling cada 10 segundos en `ListaCompra.jsx` con `setInterval` + limpieza en el
 - Registrado en `main.jsx` e inyectado en `index.html`
 - Instalable desde Chrome (Android) y Safari (iOS) con "Añadir a pantalla de inicio"
 
-### Fase 9 — Monitorización de la Pi (solo admin)
+### ~~Fase 9 — Monitorización de la Pi (solo admin)~~ ✅ — 25 marzo 2026
 
-Tile en el dashboard visible únicamente para admin que muestre en tiempo real: CPU, RAM, temperatura del procesador y espacio libre en disco. Útil para detectar problemas de rendimiento sin conectarse por SSH.
+Página `/admin/sistema` visible solo para admin con:
+- CPU, RAM, temperatura y disco con barras de progreso y colores dinámicos (verde/naranja/rojo según nivel)
+- Sparklines SVG con historial de los últimos 2 minutos
+- Polling cada 5 segundos con `psutil` en el backend
 
 ### Fase 10 — Documento técnico de arquitectura detallado
 
