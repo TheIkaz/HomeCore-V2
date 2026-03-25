@@ -67,11 +67,11 @@ Repo: https://github.com/TheIkaz/HomeCore-V2
 
 ---
 
-### Fase 3 — Servicios de contenido
+### ~~Fase 3 — Servicios de contenido~~ ✅ COMPLETADA — 25 marzo 2026
 
 Servicios añadidos al `docker-compose.yml`:
-- **Filebrowser** — explorador de ficheros web. Subir, descargar y organizar ficheros en el SSD desde el navegador. Forward auth de Authentik (sin login propio).
-- **Jellyfin** — streaming de media. Monta la carpeta `media/` de Filebrowser como biblioteca de solo lectura.
+- **Filebrowser** — explorador de ficheros web. Subir, descargar y organizar ficheros en el SSD desde el navegador. Forward auth de Authentik (sin login propio). ✅
+- **Jellyfin** — streaming de media. Monta la carpeta `media/` de Filebrowser como biblioteca de solo lectura. ✅
 
 Flujo de uso:
 1. El usuario sube archivos a `files.theikaz.com` (Filebrowser)
@@ -79,7 +79,9 @@ Flujo de uso:
 
 SSO:
 - Filebrowser: forward auth de Caddy ✅
-- Jellyfin: plugin SSO instalable desde la UI (pendiente)
+- Jellyfin: plugin 9p4/SSO-Auth con proveedor OIDC de Authentik ✅
+  - URL de acceso directo: `https://media.theikaz.com/sso/OID/start/authentik`
+  - Caddy envía `X-Forwarded-Proto: https` para que Jellyfin use HTTPS en las URLs de callback
 
 ### Fase 4 — Estabilidad y backups
 - `scripts/backup.sh` — Restic + Rclone
@@ -91,8 +93,9 @@ SSO:
 - ~~Obtener token del túnel de Cloudflare~~ ✅
 - ~~Rellenar `.env` en la Pi y arrancar contenedores~~ ✅
 - ~~Configuración manual de Authentik (grupos, outpost)~~ ✅
+- ~~Desplegar Filebrowser y Jellyfin~~ ✅
+- ~~Configurar SSO de Jellyfin con Authentik~~ ✅
 - Crear usuarios adicionales en Authentik (familia)
-- Configurar OIDC para Nextcloud y Paperless (Fase 3)
 
 ---
 
@@ -102,8 +105,8 @@ SSO:
 |---|---|---|
 | `auth.theikaz.com` | Authentik | ✅ Operativo |
 | `homecore.theikaz.com` | HomeCore dashboard | ✅ Operativo |
-| `files.theikaz.com` | Filebrowser | Pendiente despliegue — Fase 3 |
-| `media.theikaz.com` | Jellyfin | Pendiente despliegue — Fase 3 |
+| `files.theikaz.com` | Filebrowser | ✅ Operativo |
+| `media.theikaz.com` | Jellyfin | ✅ Operativo |
 
 ---
 

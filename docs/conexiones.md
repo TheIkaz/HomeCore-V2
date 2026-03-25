@@ -72,7 +72,7 @@ Todos los subdominios protegidos incluyen `import autenticacion`. El subdominio 
 | `auth.theikaz.com` | `authentik-server:9000` | No |
 | `homecore.theikaz.com` | `homecore:5000` | Sí |
 | `files.theikaz.com` | `filebrowser:80` | Sí (forward auth igual que HomeCore) — Fase 3 |
-| `media.theikaz.com` | `jellyfin:8096` | No — clientes nativos (TV, móvil) necesitan auth propia de Jellyfin |
+| `media.theikaz.com` | `jellyfin:8096` | SSO via plugin 9p4/SSO-Auth — acceso directo en `/sso/OID/start/authentik` |
 
 ---
 
