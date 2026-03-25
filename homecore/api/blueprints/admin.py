@@ -1,4 +1,5 @@
 import os
+import uuid
 import requests
 from flask import Blueprint, jsonify, request
 from ..utils.auth import es_admin
@@ -54,7 +55,7 @@ def invitar():
             f"{_AUTHENTIK_URL}/api/v3/stages/invitation/invitations/",
             headers=_headers(),
             json={
-                "name":       f"Invitación — {nombre}",
+                "name":       f"inv-{uuid.uuid4().hex[:8]}",
                 "flow":       flow_pk,
                 "fixed_data": {"name": nombre, "email": email},
                 "single_use": True,
