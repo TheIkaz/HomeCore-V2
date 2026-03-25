@@ -61,10 +61,9 @@ def _seed_apps():
         return
 
     apps_iniciales = [
-        ("inventario", "Inventario",  "/inventario",                "Package",    "familia"),
-        ("nextcloud",  "Archivos",    "https://files.theikaz.com",  "FolderOpen", "familia"),
-        ("jellyfin",   "Media",       "https://media.theikaz.com",  "Play",       "familia"),
-        ("paperless",  "Documentos",  "https://docs.theikaz.com",   "FileText",   "familia"),
+        ("inventario",   "Inventario", "/inventario",               "Package",    "familia"),
+        ("filebrowser",  "Archivos",   "https://files.theikaz.com", "FolderOpen", "familia"),
+        ("jellyfin",     "Media",      "https://media.theikaz.com", "Play",       "familia"),
     ]
     db.executemany(
         "INSERT INTO apps (nombre, nombre_visible, url, icono, grupos_requeridos) VALUES (?,?,?,?,?)",

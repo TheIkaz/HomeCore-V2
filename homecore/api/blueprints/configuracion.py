@@ -1,3 +1,4 @@
+import sqlite3
 from flask import Blueprint, jsonify, request
 from ..database import get_db
 from ..utils.auth import es_admin, get_usuario_actual
@@ -50,7 +51,7 @@ def crear_app():
             )
         )
         db.commit()
-    except Exception:
+    except sqlite3.IntegrityError:
         return jsonify({"status": "error", "mensaje": f"Ya existe una app con nombre '{data['nombre']}'"}), 409
 
     return jsonify({"status": "ok", "mensaje": "App añadida al catálogo"})

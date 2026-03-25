@@ -12,7 +12,6 @@
 #   homecore.{$DOMINIO}  → HomeCore dashboard  [Fase 2]
 #   files.{$DOMINIO}     → Filebrowser          [Fase 3]
 #   media.{$DOMINIO}     → Jellyfin             [Fase 3]
-#   docs.{$DOMINIO}      → Paperless-ngx        [Fase 3]
 # ─────────────────────────────────────────────────────────────────
 
 
