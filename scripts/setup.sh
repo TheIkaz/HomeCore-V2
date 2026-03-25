@@ -164,11 +164,10 @@ sudo mkdir -p \
     "$HOMECORE_ROOT/authentik/certs" \
     "$HOMECORE_ROOT/authentik/templates" \
     "$HOMECORE_ROOT/homecore/data" \
-    "$HOMECORE_ROOT/data/nextcloud" \
-    "$HOMECORE_ROOT/data/paperless" \
-    "$HOMECORE_ROOT/media/peliculas" \
-    "$HOMECORE_ROOT/media/series" \
-    "$HOMECORE_ROOT/media/musica" \
+    "$HOMECORE_ROOT/filebrowser/data/media" \
+    "$HOMECORE_ROOT/filebrowser/db" \
+    "$HOMECORE_ROOT/jellyfin/config" \
+    "$HOMECORE_ROOT/jellyfin/cache" \
     "$HOMECORE_ROOT/backups" \
     "$HOMECORE_ROOT/logs"
 sudo chown -R "$USER:$USER" "$HOMECORE_ROOT"
