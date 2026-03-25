@@ -63,7 +63,9 @@ http://files.{$DOMINIO} {
 # Sin forward auth — necesario para clientes nativos (apps de TV, móvil, Infuse).
 # Jellyfin gestiona su propio login. SSO con Authentik se configura desde su UI.
 http://media.{$DOMINIO} {
-    reverse_proxy jellyfin:8096
+    reverse_proxy jellyfin:8096 {
+        header_up X-Forwarded-Proto https
+    }
 }
 
 
