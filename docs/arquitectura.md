@@ -1,6 +1,6 @@
 # HomeCore — Documento de Arquitectura
 
-**Versión 1.2 · Marzo 2026**
+**Versión 1.3 · Marzo 2026**
 Servidor privado doméstico — Raspberry Pi 4 · 8 GB RAM · SSD 1 TB
 
 ---
@@ -42,7 +42,7 @@ La Raspberry establece un túnel saliente cifrado hacia los servidores de Cloudf
 | Característica | Detalle |
 |---|---|
 | Coste | Gratuito con cuenta Cloudflare |
-| Dominio | Subdominio de Cloudflare gratuito o dominio propio |
+| Dominio | `theikaz.com` (dominio propio registrado en Cloudflare) |
 | Fricción usuario | Ninguna — acceso por navegador, sin instalar apps |
 | Seguridad | TLS extremo a extremo, la Pi nunca expone puertos |
 | Quién lo usa | Toda la familia para acceso cotidiano |
@@ -56,6 +56,7 @@ ZeroTier crea una red virtual privada P2P cifrada. Se mantiene exclusivamente pa
 | Coste | Gratuito hasta 25 dispositivos |
 | Fricción usuario | Requiere instalar app ZeroTier en el dispositivo admin |
 | Uso | SSH, diagnóstico, acceso de bajo nivel a la Pi |
+| IP de la Pi en ZeroTier | `10.147.18.210` |
 | Quién lo usa | Solo el administrador del sistema |
 
 ---
@@ -71,9 +72,8 @@ Todos los servicios corren en contenedores Docker, orquestados con Docker Compos
 | Autenticación | Authentik | SSO, gestión de usuarios con UI web, MFA, sesiones por dispositivo. |
 | Hub / dashboard | HomeCore (Flask + React) | Desarrollo propio. Pantalla principal y módulos personalizados. |
 | Archivos | Filebrowser | Explorador de ficheros web ligero. Subir y descargar contenido al SSD desde navegador o móvil. |
-| Streaming media | Jellyfin | Películas y música. Libre, sin suscripción. |
-| Documentos / OCR | Paperless-ngx | Gestión de documentos escaneados con OCR y búsqueda. |
-| Backups | Restic + Rclone | Backups incrementales cifrados con copia offsite. |
+| Streaming media | Jellyfin | Películas y música. Libre, sin suscripción. SSO con Authentik via plugin. |
+| Backups | Restic + Rclone | Backups incrementales cifrados con copia offsite. **Pendiente — Fase 4.** |
 
 ---
 
@@ -87,24 +87,21 @@ Toda petición sigue siempre el mismo camino, independientemente del servicio al
 |---|---|
 | 1 — Dispositivo | El usuario abre el navegador y accede al dominio configurado. |
 | 2 — Cloudflare Tunnel | La petición llega cifrada a la Pi a través del túnel. Ningún puerto expuesto. |
-| 3 — Caddy | Recibe la petición. Comprueba si el usuario tiene sesión válida consultando a Authentik (forward auth). |
-| 4 — Authentik | Si no hay sesión, muestra la pantalla de login. Si la hay, confirma la identidad y devuelve las cabeceras del usuario. |
-| 5 — Servicio destino | Caddy reenvía la petición al servicio correspondiente (HomeCore, Nextcloud, Jellyfin, Paperless) con las cabeceras de identidad incluidas. |
+| 3 — Caddy | Recibe la petición. Según el subdominio, aplica forward auth (HomeCore, Filebrowser) o reenvía directamente (Jellyfin, Authentik). |
+| 4 — Authentik | Si hay forward auth y no hay sesión, muestra la pantalla de login. Si la hay, confirma la identidad y devuelve las cabeceras del usuario. |
+| 5 — Servicio destino | Caddy reenvía la petición al servicio correspondiente con las cabeceras de identidad incluidas. |
 | 6 — Respuesta | El servicio responde. El usuario nunca abandona el dominio — todo pasa por Caddy. |
 
 ### 5.2 Subdominios
 
-Cada servicio tiene su propio subdominio bajo el dominio principal. Caddy enruta por subdominio hacia el contenedor correspondiente en la red interna de Docker.
+| Subdominio | Servicio | Autenticación |
+|---|---|---|
+| `auth.theikaz.com` | Authentik — login y panel de admin | Sin auth (es el propio proveedor) |
+| `homecore.theikaz.com` | HomeCore — dashboard principal | Forward auth (Authentik) |
+| `files.theikaz.com` | Filebrowser | Forward auth (Authentik) |
+| `media.theikaz.com` | Jellyfin | SSO via plugin 9p4/SSO-Auth |
 
-| Subdominio | Servicio |
-|---|---|
-| homecore.tudominio.com | HomeCore — dashboard principal |
-| auth.tudominio.com | Authentik — login y panel de admin |
-| files.tudominio.com | Filebrowser |
-| media.tudominio.com | Jellyfin |
-| docs.tudominio.com | Paperless-ngx |
-
-> **Nota:** Los servicios internos (Nextcloud, Jellyfin, Paperless) solo escuchan en la red interna de Docker. Nunca son accesibles directamente desde el exterior.
+> **Nota:** Los servicios solo escuchan en la red interna de Docker. Nunca son accesibles directamente desde el exterior.
 
 ---
 
@@ -112,40 +109,43 @@ Cada servicio tiene su propio subdominio bajo el dominio principal. Caddy enruta
 
 ### 6.1 Modelo SSO
 
-Authentik actúa como proveedor de identidad único (SSO — Single Sign-On) para todo el sistema. Los usuarios existen una sola vez en Authentik. El resto de servicios no tienen su propio sistema de login — delegan en Authentik mediante el protocolo estándar OIDC (OpenID Connect).
+Authentik actúa como proveedor de identidad único (SSO — Single Sign-On) para todo el sistema. Los usuarios existen una sola vez en Authentik. El resto de servicios no tienen su propio sistema de login — delegan en Authentik.
 
-Consecuencias prácticas:
-- Crear un usuario en Authentik le da acceso automáticamente a todos los servicios asignados.
-- Bloquear un usuario en Authentik le corta el acceso a todos los servicios a la vez.
-- El usuario solo recuerda una contraseña para todo el sistema.
-- Cambiar la contraseña en Authentik la cambia en todos los servicios.
+Hay dos mecanismos de integración según el servicio:
+
+| Mecanismo | Servicios | Cómo funciona |
+|---|---|---|
+| **Forward auth** | HomeCore, Filebrowser | Caddy pregunta a Authentik si hay sesión antes de servir la petición. Sin OIDC. |
+| **OIDC/OAuth2** | Jellyfin | El servicio redirige al navegador a Authentik. Authentik devuelve un token. |
 
 ### 6.2 Grupos y permisos
 
-| Grupo | Acceso |
+| Grupo (slug) | Nombre en Authentik | Acceso |
+|---|---|---|
+| `familia` | Familia | HomeCore, Filebrowser, Jellyfin |
+| `admin` | authentik Admins | Todo lo anterior más el panel de administración de Authentik |
+
+> `akadmin` debe pertenecer al grupo `admin` (no solo ser superusuario). Verificar en **Directory → Users → akadmin → Groups**.
+
+### 6.3 Cabeceras de identidad (forward auth)
+
+Authentik inyecta estas cabeceras en cada petición validada por forward auth:
+
+| Cabecera | Contenido |
 |---|---|
-| familia | HomeCore, Filebrowser (acceso al SSD), Jellyfin (todas las bibliotecas), Paperless |
-| admin | Todo lo anterior más el panel de administración de Authentik y acceso SSH vía ZeroTier |
+| `X-Authentik-Username` | Login del usuario |
+| `X-Authentik-Email` | Email |
+| `X-Authentik-Name` | Nombre completo |
+| `X-Authentik-Groups` | Grupos en formato `Nombre\|slug` separados por coma |
+| `X-Authentik-Uid` | UUID interno del usuario |
 
-### 6.3 Gestión de dispositivos y sesiones
+> **Formato de grupos:** cada grupo llega como `Nombre visible|slug`. HomeCore extrae el **slug** (parte después de `|`) para comparar con `grupos_requeridos`.
 
-Authentik permite, desde su panel de administración web:
-- Ver qué sesiones tiene abiertas cada usuario y desde qué IP y dispositivo.
-- Cerrar una sesión concreta o todas las sesiones de un usuario.
-- Obligar a reautenticación en el siguiente acceso.
-- Configurar MFA por usuario o por grupo.
+### 6.4 Sesión unificada
 
-### 6.4 Integración con HomeCore
+Cuando el usuario inicia sesión para acceder a HomeCore (forward auth), Authentik crea una cookie de sesión en `auth.theikaz.com`. Esta misma sesión es reutilizada cuando el usuario accede a Jellyfin via OIDC, por lo que no necesita volver a introducir credenciales.
 
-HomeCore no gestiona autenticación propia. Caddy valida la sesión con Authentik antes de que cualquier petición llegue a Flask. HomeCore recibe la identidad del usuario en cabeceras HTTP estándar:
-
-| Cabecera HTTP | Contenido |
-|---|---|
-| X-Forwarded-User | Nombre de usuario (login) |
-| X-Forwarded-Email | Email del usuario |
-| X-Forwarded-Groups | Grupos a los que pertenece |
-
-Con esa información, HomeCore sabe quién es el usuario y qué apps mostrarle en el dashboard, sin base de datos de usuarios propia ni gestión de tokens JWT.
+**El flujo natural es:** entrar primero a HomeCore → la sesión queda activa → el resto de servicios SSO entran sin pedir login.
 
 ---
 
@@ -156,7 +156,7 @@ Con esa información, HomeCore sabe quién es el usuario y qué apps mostrarle e
 HomeCore es la pantalla principal del sistema. Su función es:
 - Mostrar el catálogo de aplicaciones disponibles para el usuario según sus grupos.
 - Alojar módulos propios desarrollados a medida (inventario, lista de la compra, etc.).
-- Servir como punto de lanzamiento hacia los servicios externos (Nextcloud, Jellyfin, Paperless).
+- Servir como punto de lanzamiento hacia los servicios externos (Filebrowser, Jellyfin).
 
 ### 7.2 Arquitectura interna
 
@@ -165,18 +165,15 @@ HomeCore es la pantalla principal del sistema. Su función es:
 | Frontend | React (Vite) — SPA servida como ficheros estáticos |
 | Backend API | Flask (Python) — blueprints por módulo |
 | Base de datos | SQLite — catálogo de apps, datos de módulos propios |
-| Contenedor | Docker — imagen Python + build de React |
+| Contenedor | Docker — imagen Python + build de React (multi-etapa) |
 
 ### 7.3 Blueprints de la API
 
 | Blueprint | Función |
 |---|---|
-| /api/apps/catalogo | Devuelve las apps disponibles para el usuario actual (filtra por grupos de Authentik) |
-| /api/inventario/* | Módulo de inventario doméstico |
-| /api/configuracion/* | Ajustes del sistema accesibles al admin |
-| Futuros módulos | Cada módulo nuevo es un blueprint Flask independiente |
-
-> **Nota:** Los blueprints de auth del código legacy desaparecen. La autenticación la gestiona Authentik + Caddy completamente fuera de HomeCore.
+| `/api/apps/catalogo` | Devuelve las apps disponibles para el usuario actual (filtra por grupos de Authentik) |
+| `/api/inventario/*` | Módulo de inventario doméstico |
+| `/api/configuracion/*` | Ajustes del sistema accesibles al admin |
 
 ### 7.4 Catálogo de apps
 
@@ -184,49 +181,38 @@ El catálogo es una tabla en SQLite que HomeCore consulta para saber qué apps e
 
 | Campo | Descripción |
 |---|---|
-| nombre | Identificador único (nextcloud, jellyfin, paperless...) |
-| nombre_visible | Texto que se muestra en el dashboard |
-| url | URL del servicio (subdominio de Caddy) |
-| icono | Nombre del icono (lucide-react) |
-| grupos_requeridos | Grupos de Authentik que pueden ver esta app |
-| activo | Permite ocultar una app sin eliminarla |
+| `nombre` | Identificador único |
+| `nombre_visible` | Texto que se muestra en el dashboard |
+| `url` | URL destino. Si empieza por `/` es ruta interna de React Router. Si empieza por `https://` abre en nueva pestaña. |
+| `icono` | Nombre del icono de `lucide-react` |
+| `grupos_requeridos` | Slugs de grupos separados por coma (ej. `familia`) |
+| `activo` | `1` visible, `0` oculto |
 
 ---
 
-## 8. Servicios de contenido
+## 8. Servicios de contenido (Fase 3)
 
 ### 8.1 Filebrowser — archivos
 
 | Aspecto | Detalle |
 |---|---|
-| Función | Explorador de ficheros web. Subir, descargar, crear carpetas y mover archivos en el SSD desde el navegador o el móvil. Actúa como "cargador" de contenido para Jellyfin y Paperless. |
+| Función | Explorador de ficheros web. Subir, descargar, crear carpetas y mover archivos en el SSD desde el navegador o el móvil. Actúa como cargador de contenido para Jellyfin. |
 | Acceso | Navegador (escritorio y móvil). Sin app adicional. |
-| Autenticación | Forward auth de Authentik vía Caddy (igual que HomeCore). Sin OIDC. |
-| Carpetas expuestas | `/srv/homecore/homecore/filebrowser/data/` — contiene subcarpetas `media/` y `documentos/` que montan Jellyfin y Paperless respectivamente. |
-| Base de datos | SQLite ligera para configuración interna (usuarios, preferencias). |
-| Flujo típico | Subir película → Jellyfin la detecta automáticamente. Subir PDF → Paperless lo indexa con OCR. |
+| Autenticación | Forward auth de Authentik vía Caddy. Filebrowser arranca con `--noauth` — Caddy es la única capa de auth. |
+| Carpetas expuestas | `/srv/homecore/homecore/filebrowser/data/` — contiene subcarpeta `media/` que monta Jellyfin en solo lectura. |
 
 ### 8.2 Jellyfin — streaming de media
 
 | Aspecto | Detalle |
 |---|---|
 | Función | Streaming de películas y música para la familia. |
-| Acceso | Navegador, app móvil, app de Smart TV, Chromecast. |
-| Autenticación | SSO via Authentik (requiere plugin SSO — instalación sencilla). |
-| Bibliotecas | Asignables por usuario o grupo desde el panel de Jellyfin. |
-| Transcoding | Desactivado por defecto en Pi 4 — sirve ficheros directos para evitar saturar CPU. |
-| Datos | SSD: /srv/homecore/media/ |
-
-### 8.3 Paperless-ngx — gestión documental
-
-| Aspecto | Detalle |
-|---|---|
-| Función | Archivo y búsqueda de documentos escaneados, facturas y recibos con OCR automático. |
-| Acceso | Navegador únicamente. |
-| Autenticación | SSO via Authentik (OIDC nativo). |
-| OCR | Reconocimiento automático de texto en PDFs e imágenes al subir. |
-| Permisos | Documentos privados por usuario. Documentos compartidos por grupo. |
-| Datos | SSD: /srv/homecore/data/paperless/ |
+| Acceso | Navegador, app móvil, app de Smart TV. |
+| Autenticación | SSO via plugin **9p4/jellyfin-plugin-sso** con Authentik como proveedor OIDC. |
+| URL de acceso SSO | `https://media.theikaz.com/sso/OID/start/authentik` |
+| Authorization flow en Authentik | `default-provider-authorization-implicit-consent` (reutiliza sesión existente sin pedir login) |
+| Header de proxy | Caddy envía `X-Forwarded-Proto: https` para que Jellyfin use HTTPS en las URLs de callback. |
+| Bibliotecas | La carpeta `media/` de Filebrowser montada en solo lectura. |
+| Datos | `/srv/homecore/homecore/jellyfin/config/` y `/srv/homecore/homecore/jellyfin/cache/` |
 
 ---
 
@@ -234,45 +220,45 @@ El catálogo es una tabla en SQLite que HomeCore consulta para saber qué apps e
 
 | Ruta en el SSD | Contenido |
 |---|---|
-| /srv/homecore/ | Raíz de todo el proyecto |
-| /srv/homecore/compose/ | Ficheros docker-compose.yml y .env |
-| /srv/homecore/caddy/ | Caddyfile y certificados TLS |
-| /srv/homecore/authentik/ | Configuración y base de datos de Authentik |
-| /srv/homecore/homecore/ | Código fuente de HomeCore (repo clonado) |
-| /srv/homecore/homecore/filebrowser/data/media/ | Archivos de media (películas, series, música) — compartido con Jellyfin |
-| /srv/homecore/homecore/filebrowser/data/documentos/ | Documentos para Paperless (PDFs, facturas, recibos) |
-| /srv/homecore/homecore/filebrowser/db/ | Base de datos SQLite de Filebrowser |
-| /srv/homecore/homecore/paperless/data/ | Datos internos y BD de Paperless-ngx |
-| /srv/homecore/homecore/paperless/media/ | Archivos procesados por Paperless |
-| /srv/homecore/backups/ | Snapshots locales de Restic |
-| /srv/homecore/logs/ | Logs centralizados de los servicios |
+| `/srv/homecore/` | Raíz de todo el proyecto |
+| `/srv/homecore/compose/` | `.env` con secretos (nunca en Git) |
+| `/srv/homecore/homecore/` | Repo clonado de GitHub |
+| `/srv/homecore/homecore/compose/` | `docker-compose.yml` |
+| `/srv/homecore/homecore/caddy/` | `Caddyfile` (fichero físico, no symlink) y datos de Caddy |
+| `/srv/homecore/homecore/authentik/` | PostgreSQL, Redis, media, certs de Authentik |
+| `/srv/homecore/homecore/homecore/data/` | `homecore.db` (SQLite de HomeCore) |
+| `/srv/homecore/homecore/filebrowser/data/` | Archivos del usuario (media/, etc.) |
+| `/srv/homecore/homecore/filebrowser/db/` | BD SQLite de configuración de Filebrowser |
+| `/srv/homecore/homecore/jellyfin/config/` | Configuración de Jellyfin |
+| `/srv/homecore/homecore/jellyfin/cache/` | Caché de Jellyfin |
+
+> **IMPORTANTE:** El `docker-compose.yml` usa rutas relativas desde su propio directorio. Siempre lanzar con `-f /srv/homecore/homecore/compose/docker-compose.yml` para que los volúmenes resuelvan correctamente.
 
 ---
 
-## 10. Backups
+## 10. Backups (Fase 4 — pendiente)
 
 Estrategia 3-2-1: tres copias, en dos medios distintos, uno fuera del hogar.
 
 | Capa | Detalle |
 |---|---|
 | Herramienta | Restic para snapshots incrementales cifrados + Rclone para sincronización offsite. |
-| Backup local | Snapshot diario en /srv/homecore/backups/ — retención 7 días. |
-| Backup offsite | Rclone sincroniza los snapshots cifrados a un proveedor cloud (Backblaze B2 o similar). |
-| Qué se incluye | Datos de Nextcloud, base de datos de Paperless, configuración de Authentik, SQLite de HomeCore, Caddyfile. |
+| Backup local | Snapshot diario en `/srv/homecore/backups/` — retención 7 días. |
+| Backup offsite | Rclone sincroniza los snapshots cifrados a un proveedor cloud. |
+| Qué se incluye | Base de datos PostgreSQL (Authentik), SQLite de HomeCore, Caddyfile, config de Jellyfin. |
 | Qué se excluye | Media de Jellyfin (películas/música) — son ficheros originales recuperables. |
 | Frecuencia | Cron diario a las 03:00. Verificación de integridad semanal. |
-| Cifrado | Restic cifra los snapshots con contraseña antes de enviarlos offsite. |
 
 ---
 
 ## 11. Fases de construcción
 
-| Fase | Título | Contenido |
+| Fase | Título | Estado |
 |---|---|---|
-| Fase 1 | Base de infraestructura | Docker + Caddy + Authentik + Cloudflare Tunnel. Resultado: login centralizado funcional. |
-| Fase 2 | HomeCore como dashboard | Refactorizar HomeCore, catálogo de apps en SQLite, dashboard React dinámico. |
-| Fase 3 | Servicios de contenido | Nextcloud + Jellyfin + Paperless con SSO integrado. |
-| Fase 4 | Estabilidad y backups | Restic + Rclone + Watchtower. Sistema completo en producción. |
+| Fase 1 | Base de infraestructura | ✅ Completada |
+| Fase 2 | HomeCore como dashboard | ✅ Completada |
+| Fase 3 | Servicios de contenido (Filebrowser + Jellyfin) | ✅ Completada — 25 marzo 2026 |
+| Fase 4 | Estabilidad y backups | Pendiente |
 
 ---
 
@@ -280,9 +266,9 @@ Estrategia 3-2-1: tres copias, en dos medios distintos, uno fuera del hogar.
 
 Añadir cualquier servicio nuevo sigue siempre el mismo proceso:
 
-1. Añadir el contenedor al docker-compose.yml.
-2. Añadir una entrada en el Caddyfile para el nuevo subdominio.
-3. Si el servicio soporta OIDC: configurar la integración con Authentik. Si no: Caddy actúa de forward auth.
+1. Añadir el contenedor al `docker-compose.yml`.
+2. Añadir una entrada en el `Caddyfile` para el nuevo subdominio.
+3. Si el servicio soporta OIDC: configurar la integración con Authentik. Si no: Caddy actúa de forward auth con `import autenticacion`.
 4. Insertar una fila en el catálogo de apps de HomeCore. El dashboard lo muestra automáticamente.
 
 ---
@@ -293,15 +279,6 @@ Añadir cualquier servicio nuevo sigue siempre el mismo proceso:
 |---|---|
 | Repositorio | https://github.com/TheIkaz/HomeCore-V2 |
 | Visibilidad | Público — nunca contiene secretos |
-
-### Tags por fase
-
-| Tag Git | Contenido |
-|---|---|
-| v0.1 | Docker + Caddy + Authentik + Cloudflare Tunnel funcionando |
-| v0.2 | HomeCore como dashboard con catálogo de apps dinámico |
-| v0.3 | Nextcloud, Jellyfin y Paperless con SSO integrado |
-| v1.0 | Backups, monitorización y sistema completo en producción |
 
 ---
 
@@ -314,7 +291,7 @@ Añadir cualquier servicio nuevo sigue siempre el mismo proceso:
 | Cloudflare Tunnel | Túnel cifrado saliente que permite acceso remoto sin abrir puertos en el router. |
 | Docker Compose | Herramienta para definir y ejecutar múltiples contenedores Docker desde un único fichero YAML. |
 | Forward Auth | Mecanismo por el que Caddy consulta a Authentik si el usuario tiene sesión válida antes de servir cualquier ruta. |
-| OIDC | OpenID Connect. Protocolo estándar de autenticación delegada. |
+| OIDC | OpenID Connect. Protocolo estándar de autenticación delegada. Usado por Jellyfin. |
 | Restic | Herramienta de backup incremental con cifrado. |
 | Rclone | Herramienta de sincronización de ficheros hacia proveedores cloud. |
 | SSO | Single Sign-On. Un único login da acceso a todos los servicios sin volver a autenticarse. |

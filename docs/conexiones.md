@@ -169,7 +169,54 @@ grupos = [entrada.split("|")[-1].strip() ... for entrada in grupos_raw.split(","
 
 ---
 
-## 6. Red interna Docker
+## 6. Filebrowser
+
+| Parámetro | Valor |
+|---|---|
+| Contenedor | `homecore-filebrowser` |
+| Imagen | `filebrowser/filebrowser:latest` |
+| Puerto interno | `80` |
+| Comando | `--noauth --database /db/filebrowser.db` |
+| Autenticación | Forward auth de Caddy — Filebrowser **no** tiene auth propia |
+| Volumen de datos | `../filebrowser/data:/srv` → `/srv/homecore/homecore/filebrowser/data/` |
+| Volumen de BD | `../filebrowser/db:/db` → `/srv/homecore/homecore/filebrowser/db/` |
+
+La carpeta `../filebrowser/data/media/` es montada por Jellyfin en solo lectura como biblioteca de media.
+
+---
+
+## 7. Jellyfin
+
+| Parámetro | Valor |
+|---|---|
+| Contenedor | `homecore-jellyfin` |
+| Imagen | `jellyfin/jellyfin:latest` |
+| Puerto interno | `8096` |
+| Autenticación | Plugin SSO 9p4/jellyfin-plugin-sso + Authentik como proveedor OIDC |
+| URL de acceso SSO | `https://media.theikaz.com/sso/OID/start/authentik` |
+| Volumen config | `../jellyfin/config:/config` |
+| Volumen cache | `../jellyfin/cache:/cache` |
+| Volumen media | `../filebrowser/data/media:/media:ro` (compartido con Filebrowser, solo lectura) |
+
+### Configuración del plugin SSO en Authentik
+
+El provider OIDC de Jellyfin debe tener:
+
+| Campo | Valor |
+|---|---|
+| Authorization flow | `default-provider-authorization-implicit-consent` |
+| Redirect URIs | `https://media.theikaz.com/sso/OID/redirect/authentik` |
+| Client type | Confidential |
+
+> **Authorization flow implicit-consent:** reutiliza la sesión activa de Authentik sin pedir login de nuevo. Si se usa otro flow, Authentik pedirá credenciales cada vez aunque el usuario ya esté autenticado.
+
+### Por qué `X-Forwarded-Proto: https` en Caddy
+
+Jellyfin genera URLs de callback usando el protocolo que detecta en la petición entrante. Como recibe tráfico HTTP desde Caddy (la red Docker es HTTP interna), sin este header generaría `http://media.theikaz.com/...` como redirect_uri. Cloudflare eleva el tráfico a HTTPS, causando un mismatch. El header `X-Forwarded-Proto: https` le indica a Jellyfin que use HTTPS en las URLs que genera.
+
+---
+
+## 8. Red interna Docker
 
 Todos los contenedores comparten la red `homecore` (bridge). Se comunican por nombre de servicio:
 
@@ -180,10 +227,12 @@ Todos los contenedores comparten la red `homecore` (bridge). Se comunican por no
 | `postgresql` | `postgresql` | `5432` |
 | `redis` | `redis` | `6379` |
 | `caddy` | `caddy` | `80`, `443` |
+| `filebrowser` | `filebrowser` | `80` |
+| `jellyfin` | `jellyfin` | `8096` |
 
 ---
 
-## 7. Rutas de datos persistentes en la Pi
+## 9. Rutas de datos persistentes en la Pi
 
 > Todas relativas al directorio del compose (`/srv/homecore/homecore/compose/`), que resuelve `../` a `/srv/homecore/homecore/`.
 
@@ -195,17 +244,37 @@ Todos los contenedores comparten la red `homecore` (bridge). Se comunican por no
 | Datos y config de Caddy | `/srv/homecore/homecore/caddy/data/` |
 | Caddyfile físico (no symlink) | `/srv/homecore/homecore/caddy/Caddyfile` |
 | Base de datos SQLite de HomeCore | `/srv/homecore/homecore/homecore/data/homecore.db` |
+| Archivos de usuario (Filebrowser) | `/srv/homecore/homecore/filebrowser/data/` |
+| Config de Jellyfin | `/srv/homecore/homecore/jellyfin/config/` |
 | Fichero `.env` (nunca en Git) | `/srv/homecore/compose/.env` |
 
 ---
 
-## 8. Diagnóstico rápido
+## 10. Diagnóstico rápido
 
 ### Dashboard vacío (sin apps)
 1. Ir a `https://homecore.theikaz.com/api/apps/catalogo`
 2. Si `usuario` está vacío → las cabeceras de Authentik no llegan (problema de outpost o Caddy)
 3. Si `usuario` tiene valor pero `datos` está vacío → el usuario no tiene grupos asignados o los slugs no coinciden con `grupos_requeridos`
 4. Solución: verificar en Authentik que el usuario pertenece al grupo `admin` o `familia`
+
+### Subdominio muestra página en blanco tras actualizar Caddyfile
+Docker puede retener el inode antiguo del fichero aunque el contenido haya cambiado (ocurre cuando git reemplaza el fichero). Caddy recarga el config pero sigue leyendo el fichero viejo.
+```bash
+docker compose -f /srv/homecore/homecore/compose/docker-compose.yml \
+  --env-file /srv/homecore/compose/.env \
+  up -d --force-recreate caddy
+```
+
+### Jellyfin pide login aunque ya hay sesión de Authentik
+1. Verificar que el Authorization flow del provider OIDC de Jellyfin es `default-provider-authorization-implicit-consent`
+2. Verificar que hay sesión activa en `https://auth.theikaz.com` — si no la hay, iniciar sesión desde HomeCore primero
+3. La sesión de Authentik se crea al entrar en cualquier servicio con forward auth (HomeCore, Filebrowser). Una vez activa, Jellyfin la reutiliza.
+
+### Jellyfin SSO: redirect_uri mismatch
+- Causa: Jellyfin genera `http://` pero Cloudflare sirve `https://`
+- Solución ya aplicada: `header_up X-Forwarded-Proto https` en el bloque Jellyfin del Caddyfile
+- Si reaparece: verificar que el Caddyfile en la Pi es el correcto con `docker exec homecore-caddy cat /etc/caddy/Caddyfile`
 
 ### cloudflared en bucle de reinicios
 - Causa más probable: `CLOUDFLARE_TUNNEL_TOKEN` vacío en el `.env`
