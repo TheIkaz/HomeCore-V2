@@ -1,5 +1,4 @@
 import os
-import secrets
 import requests
 from flask import Blueprint, jsonify, request
 from ..utils.auth import es_admin
@@ -34,10 +33,11 @@ def invitar():
     data     = request.get_json(silent=True) or {}
     nombre   = data.get("nombre",   "").strip()
     username = data.get("username", "").strip()
+    password = data.get("password", "").strip()
     grupo    = data.get("grupo",    "familia").strip()
 
-    if not all([nombre, username]):
-        return jsonify({"status": "error", "mensaje": "Nombre, email y nombre de usuario son obligatorios"}), 400
+    if not all([nombre, username, password]):
+        return jsonify({"status": "error", "mensaje": "Nombre, usuario y contraseña son obligatorios"}), 400
 
     nombre_grupo = _GRUPOS.get(grupo)
     if not nombre_grupo:
@@ -85,17 +85,16 @@ def invitar():
     except requests.RequestException as e:
         return jsonify({"status": "error", "mensaje": f"Error asignando grupo: {e}"}), 500
 
-    # 4. Asignar contraseña temporal
-    password_temporal = secrets.token_urlsafe(12)
+    # 4. Asignar contraseña
     try:
         r = requests.post(
             f"{_AUTHENTIK_URL}/api/v3/core/users/{user_pk}/set_password/",
             headers=_headers(),
-            json={"password": password_temporal},
+            json={"password": password},
             timeout=10,
         )
         r.raise_for_status()
     except requests.RequestException as e:
         return jsonify({"status": "error", "mensaje": f"Error asignando contraseña: {e}"}), 500
 
-    return jsonify({"status": "ok", "username": username, "password": password_temporal})
+    return jsonify({"status": "ok"})
