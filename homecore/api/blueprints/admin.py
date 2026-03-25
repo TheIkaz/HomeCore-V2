@@ -43,17 +43,19 @@ def invitar():
     if not nombre_grupo:
         return jsonify({"status": "error", "mensaje": "Grupo no válido"}), 400
 
-    # 1. Buscar el grupo en Authentik
+    # 1. Buscar el grupo en Authentik (comparación flexible, sin distinción de mayúsculas)
     try:
         r = requests.get(
-            f"{_AUTHENTIK_URL}/api/v3/core/groups/?name={nombre_grupo}",
+            f"{_AUTHENTIK_URL}/api/v3/core/groups/",
             headers=_headers(), timeout=10,
         )
         r.raise_for_status()
-        grupos = r.json().get("results", [])
-        if not grupos:
-            return jsonify({"status": "error", "mensaje": f"Grupo '{nombre_grupo}' no encontrado"}), 500
-        grupo_pk = grupos[0]["pk"]
+        todos = r.json().get("results", [])
+        coincidencia = [g for g in todos if nombre_grupo.lower() in g["name"].lower()]
+        if not coincidencia:
+            nombres = [g["name"] for g in todos]
+            return jsonify({"status": "error", "mensaje": f"Grupo '{nombre_grupo}' no encontrado. Grupos disponibles: {nombres}"}), 500
+        grupo_pk = coincidencia[0]["pk"]
     except requests.RequestException as e:
         return jsonify({"status": "error", "mensaje": f"Error buscando grupo: {e}"}), 500
 
