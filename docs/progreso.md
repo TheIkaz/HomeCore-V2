@@ -102,11 +102,15 @@ SSO:
 - Configurado en Authentik → System → Brands → Default application → HomeCore.
 - Tras el login, Authentik redirige directamente a HomeCore sin mostrar su portal de usuario.
 
-#### 5.3 Estados de carga en React
+#### 5.3 Acceso rápido a Authentik desde HomeCore (solo admin)
+- Añadir app al catálogo con `grupos_requeridos=admin` que enlace a `https://auth.theikaz.com/if/admin/`.
+- Los usuarios del grupo `familia` no la verán. Solo el administrador.
+
+#### 5.5 Estados de carga en React
 - **Problema:** los componentes muestran pantalla vacía mientras esperan la API. Da sensación de pantalla rota.
 - **Solución:** añadir spinner o skeleton en Dashboard, InventarioLista, Agotados y ListaCompra.
 
-#### 5.4 Diálogos de confirmación propios
+#### 5.6 Diálogos de confirmación propios
 - **Problema:** `confirm()` nativo del navegador bloqueado en algunos contextos y con aspecto anticuado.
 - **Solución:** reemplazar por un modal de confirmación propio (componente React reutilizable).
 

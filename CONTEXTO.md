@@ -42,8 +42,9 @@ Lee en este orden antes de hacer nada.
 
 1. **Bug Jellyfin SSO** — al entrar desde HomeCore pide login aunque la sesión está activa. Sesión confirmada OK, authorization flow correcto. Causa pendiente.
 2. ~~**HomeCore como único punto de entrada**~~ ✅ — configurado en Authentik → System → Brands → Default application.
-3. **Estados de carga en React** — spinner en Dashboard, InventarioLista, Agotados y ListaCompra.
-4. **Modal de confirmación propio** — reemplazar `confirm()` nativo por componente React.
+3. **Acceso rápido a Authentik** — añadir app al catálogo visible solo para `admin` → `auth.theikaz.com/if/admin/`.
+4. **Estados de carga en React** — spinner en Dashboard, InventarioLista, Agotados y ListaCompra.
+5. **Modal de confirmación propio** — reemplazar `confirm()` nativo por componente React.
 
 ---
 
