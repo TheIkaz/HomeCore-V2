@@ -23,6 +23,7 @@ Lee en este orden antes de hacer nada.
 - ✅ Fase 1 — Infraestructura base (Caddy + Authentik + Cloudflare Tunnel)
 - ✅ Fase 2 — HomeCore dashboard (Flask + React, inventario, catálogo de apps)
 - ✅ Fase 3 — Servicios de contenido (Filebrowser + Jellyfin con SSO)
+- ✅ Fase 4 — Backups semanales a Google Drive (Rclone)
 
 **Sistema en producción en:** Raspberry Pi 4 · 8 GB RAM · SSD 1 TB
 
@@ -37,12 +38,13 @@ Lee en este orden antes de hacer nada.
 
 ---
 
-## 3. Próximo trabajo — Fase 4
+## 3. Estado — todas las fases completadas ✅
 
-- `scripts/backup.sh` — Restic + Rclone (backups incrementales cifrados)
-- `scripts/restore.sh` — procedimiento de restauración
-- Añadir **Watchtower** al docker-compose para actualizaciones automáticas
-- Crear usuarios adicionales en Authentik para la familia
+**Fase 4 completada (25 marzo 2026):**
+- `scripts/backup.sh` — backup semanal a `gdrive:HomeCore-backups`, retención 4 semanas, cron activo
+- `scripts/restore.sh` — restauración interactiva desde Google Drive
+- Watchtower descartado (riesgo de actualizaciones no controladas)
+- Pendiente manual: crear usuarios adicionales en Authentik para la familia
 
 ---
 

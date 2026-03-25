@@ -83,10 +83,11 @@ SSO:
   - URL de acceso directo: `https://media.theikaz.com/sso/OID/start/authentik`
   - Caddy envía `X-Forwarded-Proto: https` para que Jellyfin use HTTPS en las URLs de callback
 
-### Fase 4 — Estabilidad y backups
-- `scripts/backup.sh` — Restic + Rclone
-- `scripts/restore.sh` — procedimiento de restauración
-- Añadir **Watchtower** al docker-compose para actualizaciones automáticas de contenedores
+### ~~Fase 4 — Estabilidad y backups~~ ✅ COMPLETADA — 25 marzo 2026
+
+- ~~`scripts/backup.sh`~~ ✅ — Rclone, backup semanal a Google Drive (`gdrive:HomeCore-backups`), retención 4 semanas
+- ~~`scripts/restore.sh`~~ ✅ — restauración interactiva desde Drive
+- ~~Watchtower~~ — descartado (riesgo de actualizaciones automáticas no controladas)
 
 ### Pendiente fuera del código
 - ~~Registrar dominio `theikaz.com` en Cloudflare~~ ✅
