@@ -111,10 +111,46 @@ Qué incluye el backup:
 
 ---
 
-## Fase 6.2 — Persistencia de sesión (pendiente)
+---
 
-- Pendiente de analizar. El usuario quiere discutir cuánto tiempo dura la sesión de Authentik y si los miembros de la familia tienen que volver a hacer login con frecuencia.
-- Probablemente implica ajustar la duración de la sesión en Authentik (token expiry, "remember me").
+## Roadmap — Pasos futuros
+
+### Fase 6.2 — Persistencia de sesión
+
+Por defecto Authentik caduca la sesión en pocas horas. Para una familia lo ideal es sesiones largas (semanas o meses). Se configura en Authentik → System → Brands ajustando la duración del token y de la sesión. Impacto alto en experiencia diaria, esfuerzo bajo.
+
+### Fase 7 — Lista de la compra en tiempo real
+
+Ahora dos personas editando la lista de la compra a la vez pueden pisarse los cambios. Implementar WebSockets o refresco automático periódico para que los cambios de un usuario sean visibles al instante para los demás.
+
+### Fase 8 — App móvil / PWA
+
+HomeCore ya es responsive pero no es instalable como app. Añadir un `manifest.json` y un service worker básico la convertiría en una PWA instalable directamente desde el navegador del móvil, sin pasar por ninguna tienda de aplicaciones.
+
+### Fase 9 — Monitorización de la Pi (solo admin)
+
+Tile en el dashboard visible únicamente para admin que muestre en tiempo real: CPU, RAM, temperatura del procesador y espacio libre en disco. Útil para detectar problemas de rendimiento sin conectarse por SSH.
+
+### Fase 10 — Documento técnico de arquitectura detallado
+
+Documento orientado a alguien con conocimiento técnico que quiera entender el sistema en profundidad: cómo se integran todos los componentes, decisiones de diseño, flujos de autenticación con diagramas, cómo añadir nuevos servicios, cómo funciona el forward auth vs OIDC, estructura del código de HomeCore, etc. Más técnico y detallado que el `arquitectura.md` actual.
+
+---
+
+## Ideas de futuras aplicaciones en HomeCore
+
+Módulos que podrían añadirse como tiles al dashboard en el futuro:
+
+| Aplicación | Descripción |
+|---|---|
+| **Gastos domésticos** | Registrar gastos del hogar, categorías, histórico mensual y presupuesto. Extensión natural del módulo de inventario. |
+| **Recetas / menú semanal** | Planificador de menús que al confirmar el menú de la semana añada automáticamente los ingredientes que falten a la lista de la compra. |
+| **Tareas del hogar** | Lista de tareas compartida con asignación por persona y recordatorios. |
+| **Calendario familiar** | Eventos compartidos visibles por todos los miembros. Podría integrarse con un servidor CalDAV propio (p. ej. Radicale). |
+| **Panel de descargas** | Interfaz para gestionar descargas (p. ej. integración con qBittorrent) directamente desde HomeCore. |
+| **Fotos familiares** | Galería privada de fotos accesible desde cualquier dispositivo. Podría integrarse con Immich (alternativa self-hosted a Google Fotos). |
+| **Notificaciones de stock** | Aviso automático (push o email vía Ntfy) cuando un producto del inventario llega al umbral de agotado. |
+| **Gestor de contraseñas** | Integración con Vaultwarden (Bitwarden self-hosted) como tile de acceso rápido. |
 
 ---
 
