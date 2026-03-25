@@ -47,7 +47,9 @@ Lee en este orden antes de hacer nada.
 - Estados de carga en todos los componentes React
 - Modal de confirmación propio (reemplaza `confirm()` nativo)
 
-**Pendiente manual:** crear usuarios adicionales en Authentik para la familia.
+**Fase 6 — en curso:**
+- **6.1 Alta de usuarios por invitación** — formulario en HomeCore (admin) → API Authentik → enlace de invitación → enrollment flow → usuario creado en el grupo correcto.
+- **6.2 Persistencia de sesión** — revisar duración de sesión en Authentik para que la familia no tenga que autenticarse frecuentemente.
 
 ---
 

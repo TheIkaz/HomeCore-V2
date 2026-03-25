@@ -108,6 +108,19 @@ SSO:
 #### ~~5.6 Diálogos de confirmación propios~~ ✅
 - Componente `ConfirmDialog` reutilizable. Sustituye `confirm()` nativo en InventarioLista.
 
+### Fase 6 — Gestión de usuarios y sesión
+
+#### 6.1 Alta de usuarios por invitación (solo admin)
+- Formulario en HomeCore (nombre, email, grupo) visible solo para admin.
+- Backend llama a la API de Authentik y crea una invitación.
+- HomeCore muestra el enlace al admin para enviarlo manualmente.
+- El invitado hace clic → enrollment flow de Authentik → elige usuario y contraseña → queda asignado al grupo indicado.
+- **Requiere:** token de API de Authentik en el `.env` + enrollment flow configurado en Authentik.
+
+#### 6.2 Persistencia de sesión
+- Pendiente de analizar. El usuario quiere discutir cuánto tiempo dura la sesión de Authentik y si los miembros de la familia tienen que volver a hacer login con frecuencia.
+- Probablemente implica ajustar la duración de la sesión en Authentik (token expiry, "remember me") para que la familia no tenga que autenticarse cada vez.
+
 ### Pendiente fuera del código
 - ~~Registrar dominio `theikaz.com` en Cloudflare~~ ✅
 - ~~Obtener token del túnel de Cloudflare~~ ✅
