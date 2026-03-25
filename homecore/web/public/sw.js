@@ -1,4 +1,4 @@
-const CACHE = "homecore-v1";
+const CACHE = "homecore-v2";
 const STATIC = ["/", "/index.html"];
 
 self.addEventListener("install", (e) => {
