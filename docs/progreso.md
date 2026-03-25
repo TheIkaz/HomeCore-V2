@@ -190,7 +190,30 @@ Módulos que podrían añadirse como tiles al dashboard en el futuro:
 | `auth.theikaz.com` | Authentik | ✅ Operativo |
 | `homecore.theikaz.com` | HomeCore dashboard | ✅ Operativo |
 | `files.theikaz.com` | Filebrowser | ✅ Operativo |
-| `media.theikaz.com` | Jellyfin | ✅ Operativo |
+| `media.theikaz.com` | Jellyfin | ⚠️ Pendiente (ver incidencia abajo) |
+
+---
+
+## Incidencia abierta — Jellyfin admin (25 marzo 2026)
+
+**Problema:** No se podía acceder al panel de administración de Jellyfin para añadir la biblioteca de medios. El usuario SSO (`Ander`) no tiene permisos de admin en Jellyfin. El usuario admin local (`akadmin`) tenía contraseña desconocida y el reset por PIN no funcionó.
+
+**Acciones realizadas:**
+- Se intentó reset de contraseña por PIN — el PIN era aceptado pero el login fallaba
+- Se borró `jellyfin.db` para forzar el asistente inicial
+- Se levantó contenedor temporal con puerto 8096 expuesto: `docker run --rm -d --name jellyfin-setup --network homecore -v /srv/homecore/homecore/jellyfin/config:/config -v /srv/homecore/homecore/jellyfin/cache:/cache -v /srv/homecore/homecore/filebrowser/data/media:/media:ro -p 8096:8096 jellyfin/jellyfin:latest`
+- El asistente no apareció — Jellyfin pedía login directamente (posiblemente la config en `/config` indica que ya está inicializado)
+
+**Estado al pausar:**
+- El contenedor temporal `jellyfin-setup` puede estar corriendo en la Pi — pararlo con `docker stop jellyfin-setup`
+- El contenedor original `homecore-jellyfin` está parado
+- `jellyfin.db` fue borrado — no hay usuarios locales
+- El plugin SSO y la configuración de red están intactos
+
+**Siguiente paso:**
+- Borrar también `/config/system.xml` o el archivo que indica que Jellyfin ya fue inicializado, para forzar el asistente
+- O crear el usuario admin directamente vía API sin autenticación (Jellyfin permite esto cuando no hay usuarios)
+- Arrancar el stack normal tras solucionar: `docker compose -f /srv/homecore/homecore/compose/docker-compose.yml --env-file /srv/homecore/compose/.env up -d`
 
 ---
 
