@@ -1,6 +1,6 @@
 # HomeCore V2 — Estado del proyecto
 
-**Última actualización: 25 marzo 2026 (madrugada)**
+**Última actualización: 25 marzo 2026**
 Repo: https://github.com/TheIkaz/HomeCore-V2
 
 ---
@@ -10,14 +10,14 @@ Repo: https://github.com/TheIkaz/HomeCore-V2
 ### Infraestructura base
 - Repositorio GitHub creado: `TheIkaz/HomeCore-V2`
 - `.gitignore`, `README.md` y estructura de carpetas
-- `compose/docker-compose.yml` con todos los servicios de Fase 1 y 2:
+- `compose/docker-compose.yml` con todos los servicios:
   - PostgreSQL + Redis (base para Authentik)
   - Authentik server + worker (SSO)
   - Caddy (reverse proxy, forward auth)
   - cloudflared (Cloudflare Tunnel)
   - HomeCore (Flask + React)
 - `compose/docker-compose.example.env` — plantilla con todas las variables necesarias
-- `caddy/Caddyfile` — enrutamiento por subdominio para `theikaz.com`, snippet de forward auth, bloques comentados para Fase 3
+- `caddy/Caddyfile` — enrutamiento por subdominio para `theikaz.com`, snippet de forward auth
 - `scripts/setup.sh` — script para preparar la Pi (directorios, .env, verificar Docker)
 
 ### HomeCore — backend Flask (`homecore/api/`)
@@ -26,56 +26,36 @@ Repo: https://github.com/TheIkaz/HomeCore-V2
 - `blueprints/apps.py` — `GET /api/apps/catalogo` filtrado por grupos del usuario
 - `blueprints/inventario.py` — CRUD completo (listar, agotados, lista-compra, buscar, crear, editar, modificar, eliminar)
 - `blueprints/configuracion.py` — gestión del catálogo de apps (solo admin)
-- `wsgi.py` — punto de entrada para Gunicorn
+- `blueprints/admin.py` — gestión de usuarios vía API de Authentik (solo admin)
 
 ### HomeCore — frontend React (`homecore/web/`)
 - Vite + React Router + lucide-react
 - `Dashboard` — grid de apps cargado dinámicamente desde `/api/apps/catalogo`
-- `Layout` — sidebar con navegación
 - Módulo `Inventario` completo: lista, agotados, lista de la compra, formulario alta/edición
-- `api/client.js`, `api/apps.js`, `api/inventario.js` — capa de llamadas a la API
+- `pages/Admin/Invitar.jsx` — formulario de alta de usuarios (solo admin)
+- `api/client.js`, `api/apps.js`, `api/inventario.js`, `api/admin.js` — capa de llamadas a la API
 - CSS modules con tema oscuro
 
 ### Docker
 - `homecore/Dockerfile` — build multi-etapa: Node construye React, Python sirve todo con Gunicorn
 
-### Navegación y Dashboard
-- Sidebar eliminado — sustituido por barra superior fina con icono de casa (→ `/`)
-- Dashboard muestra el catálogo de apps dinámico: Inventario (interno), Archivos, Media, Documentos
-- URLs internas usan React Router Link; URLs externas abren en nueva pestaña
-- Fix: grupos de Authentik llegan en formato `Nombre|slug` — se parsea el slug correctamente
-
-### Despliegue en producción (✅ COMPLETADO — 24 marzo 2026)
-- Sistema desplegado en Raspberry Pi 4 (8GB, 1TB SSD en `/srv/homecore`)
-- Cloudflare Tunnel conectado y enrutando tráfico
-- `https://auth.theikaz.com` — Authentik operativo, login funcionando
-- `https://homecore.theikaz.com` — Dashboard accesible con SSO vía forward auth
-- Grupos `familia` y `admin` creados en Authentik
-- Outpost: usar **authentik Embedded Outpost** (no crear outpost personalizado)
-
 ---
 
-## Qué falta
+## Fases completadas
 
-### Mejoras pendientes — HomeCore dashboard
+### ~~Fase 1 — Infraestructura base~~ ✅
 
-~~1. **Refresco de página devuelve 404**~~ ✅ — `static_folder=None` en Flask; el catch-all sirve siempre `index.html`.
-~~2. **Botones +/− de cantidad en el inventario**~~ ✅ — Añadidos en la columna Cantidad de `InventarioLista`.
-~~3. **Lista de la compra mejorada**~~ ✅ — Campo de cantidad a comprar, actualización de stock al marcar comprado, panel para añadir artículos manuales.
-~~4. **Botones de navegación Atrás**~~ ✅ — Añadidos en `InventarioLista`, `Agotados` y `ListaCompra`.
-~~5. **ID automático al crear producto**~~ ✅ — Backend genera UUID4; formulario ya no muestra el campo ID.
+### ~~Fase 2 — HomeCore como dashboard~~ ✅
+- Dashboard con catálogo dinámico de apps
+- Módulo Inventario completo
+- Sidebar eliminado — barra superior fina con icono de casa
+- Mejoras UX: botones +/−, lista de la compra, navegación Atrás
 
----
-
-### ~~Fase 3 — Servicios de contenido~~ ✅ COMPLETADA — 25 marzo 2026
+### ~~Fase 3 — Servicios de contenido~~ ✅ — 25 marzo 2026
 
 Servicios añadidos al `docker-compose.yml`:
-- **Filebrowser** — explorador de ficheros web. Subir, descargar y organizar ficheros en el SSD desde el navegador. Forward auth de Authentik (sin login propio). ✅
-- **Jellyfin** — streaming de media. Monta la carpeta `media/` de Filebrowser como biblioteca de solo lectura. ✅
-
-Flujo de uso:
-1. El usuario sube archivos a `files.theikaz.com` (Filebrowser)
-2. Jellyfin detecta automáticamente los nuevos archivos en su biblioteca
+- **Filebrowser** — explorador de ficheros web. Forward auth de Authentik (sin login propio). ✅
+- **Jellyfin** — streaming de media. Biblioteca de solo lectura sobre la carpeta media/ de Filebrowser. ✅
 
 SSO:
 - Filebrowser: forward auth de Caddy ✅
@@ -83,52 +63,58 @@ SSO:
   - URL de acceso directo: `https://media.theikaz.com/sso/OID/start/authentik`
   - Caddy envía `X-Forwarded-Proto: https` para que Jellyfin use HTTPS en las URLs de callback
 
-### ~~Fase 4 — Estabilidad y backups~~ ✅ COMPLETADA — 25 marzo 2026
+### ~~Fase 4 — Estabilidad y backups~~ ✅ — 25 marzo 2026
 
-- ~~`scripts/backup.sh`~~ ✅ — Rclone, backup semanal a Google Drive (`gdrive:HomeCore-backups`), retención 4 semanas
-- ~~`scripts/restore.sh`~~ ✅ — restauración interactiva desde Drive
-- ~~Watchtower~~ — descartado (riesgo de actualizaciones automáticas no controladas)
+- `scripts/backup.sh` — backup semanal a Google Drive (`gdrive:HomeCore-backups`) con Rclone, retención 4 semanas
+- `scripts/restore.sh` — restauración interactiva desde Drive
+- Watchtower descartado (riesgo de actualizaciones automáticas no controladas)
+- Cron en la Pi: cada domingo a las 03:00
 
-### Fase 5 — Experiencia de usuario y pulido
+Qué incluye el backup:
+- `pg_dump` de PostgreSQL (base de datos de Authentik)
+- SQLite de HomeCore
+- Config de Jellyfin
+- Caddyfile
 
-**Objetivo:** que el sistema sea cómodo y natural para cualquier miembro de la familia, sin fricciones de login ni confusión sobre qué pantalla usar como punto de entrada.
+### ~~Fase 5 — Experiencia de usuario~~ ✅ — 25 marzo 2026
 
-#### ~~5.1 Sesión unificada Jellyfin~~ ✅
-- No era un bug. La primera prueba se hizo sin sesión activa. Con sesión activa el flujo SSO funciona correctamente.
+- **5.1 Sesión unificada Jellyfin** — no era bug. Con sesión activa el SSO funciona sin pedir login.
+- **5.2 HomeCore como único punto de entrada** — configurado en Authentik → System → Brands → Default application → HomeCore.
+- **5.3 Acceso rápido a Authentik desde HomeCore (solo admin)** — tile "Administración" con `grupos_requeridos=admin`.
+- **5.5 Estados de carga en React** — spinner "Cargando..." en Dashboard, InventarioLista, Agotados y ListaCompra.
+- **5.6 Diálogos de confirmación propios** — componente `ConfirmDialog` reutilizable. Sustituye `confirm()` nativo.
 
-#### ~~5.2 HomeCore como único punto de entrada~~ ✅
-- Configurado en Authentik → System → Brands → Default application → HomeCore.
+### ~~Fase 6.1 — Alta de usuarios (solo admin)~~ ✅ — 25 marzo 2026
 
-#### ~~5.3 Acceso rápido a Authentik desde HomeCore (solo admin)~~ ✅
-- App "Administración" añadida al catálogo con `grupos_requeridos=admin` → `auth.theikaz.com/if/admin/`.
+**Flujo:**
+1. Admin abre el tile "Invitar usuario" en HomeCore (solo visible para admin).
+2. Rellena el formulario: nombre completo, nombre de usuario, contraseña inicial y grupo (Familia / Admin).
+3. HomeCore llama a la API de Authentik con el token de admin para:
+   - Crear el usuario (`POST /api/v3/core/users/`)
+   - Asignarlo al grupo correspondiente (`POST /api/v3/core/groups/{pk}/add_user/`)
+   - Establecer la contraseña (`POST /api/v3/core/users/{pk}/set_password/`)
+4. Si todo va bien, el formulario muestra "Usuario creado correctamente" y se limpia.
+5. El admin comparte las credenciales con el usuario manualmente.
+6. El usuario entra en `homecore.theikaz.com` con esas credenciales.
+7. Para cambiar la contraseña, el usuario va al tile "Mi cuenta" → `auth.theikaz.com/if/user/`.
 
-#### ~~5.5 Estados de carga en React~~ ✅
-- Añadido estado "Cargando..." en Dashboard, InventarioLista, Agotados y ListaCompra.
+**Requisitos técnicos:**
+- `AUTHENTIK_API_TOKEN` en el `.env` de la Pi (token de admin de Authentik, sin caducidad).
+- Variable `AUTHENTIK_API_TOKEN` inyectada en el contenedor de HomeCore en el `docker-compose.yml`.
+- No requiere ninguna configuración adicional en Authentik (sin enrollment flows, sin recovery flows).
 
-#### ~~5.6 Diálogos de confirmación propios~~ ✅
-- Componente `ConfirmDialog` reutilizable. Sustituye `confirm()` nativo en InventarioLista.
+**Tile "Mi cuenta":**
+- Visible para todos los usuarios del grupo Familia.
+- Enlaza a `https://auth.theikaz.com/if/user/` — panel de usuario de Authentik.
+- Desde ahí el usuario puede cambiar su contraseña, ver sus apps y gestionar sus tokens.
+- Los usuarios del grupo Familia no tienen permisos de admin — solo ven sus propias opciones.
 
-### Fase 6 — Gestión de usuarios y sesión
+---
 
-#### 6.1 Alta de usuarios por invitación (solo admin)
-- Formulario en HomeCore (nombre, email, grupo) visible solo para admin.
-- Backend llama a la API de Authentik y crea una invitación.
-- HomeCore muestra el enlace al admin para enviarlo manualmente.
-- El invitado hace clic → enrollment flow de Authentik → elige usuario y contraseña → queda asignado al grupo indicado.
-- **Requiere:** token de API de Authentik en el `.env` + enrollment flow configurado en Authentik.
+## Fase 6.2 — Persistencia de sesión (pendiente)
 
-#### 6.2 Persistencia de sesión
 - Pendiente de analizar. El usuario quiere discutir cuánto tiempo dura la sesión de Authentik y si los miembros de la familia tienen que volver a hacer login con frecuencia.
-- Probablemente implica ajustar la duración de la sesión en Authentik (token expiry, "remember me") para que la familia no tenga que autenticarse cada vez.
-
-### Pendiente fuera del código
-- ~~Registrar dominio `theikaz.com` en Cloudflare~~ ✅
-- ~~Obtener token del túnel de Cloudflare~~ ✅
-- ~~Rellenar `.env` en la Pi y arrancar contenedores~~ ✅
-- ~~Configuración manual de Authentik (grupos, outpost)~~ ✅
-- ~~Desplegar Filebrowser y Jellyfin~~ ✅
-- ~~Configurar SSO de Jellyfin con Authentik~~ ✅
-- Crear usuarios adicionales en Authentik (familia)
+- Probablemente implica ajustar la duración de la sesión en Authentik (token expiry, "remember me").
 
 ---
 
@@ -154,6 +140,7 @@ AUTHENTIK_DB_PASSWORD=<openssl rand -hex 16>
 AUTHENTIK_BOOTSTRAP_EMAIL=admin@theikaz.com
 AUTHENTIK_BOOTSTRAP_PASSWORD=<contraseña segura>
 CLOUDFLARE_TUNNEL_TOKEN=<token del panel de Cloudflare>
+AUTHENTIK_API_TOKEN=<token de API de Authentik — sin caducidad>
 ```
 
 ---
@@ -166,53 +153,36 @@ CLOUDFLARE_TUNNEL_TOKEN=<token del panel de Cloudflare>
 
 El `docker-compose.yml` usa rutas relativas para los volúmenes (`../authentik/`, `../caddy/`, `../homecore/`). Docker Compose resuelve esas rutas relativas **desde el directorio del fichero compose**, no desde el directorio de trabajo. Si se ejecuta el comando con una ruta distinta a la que se usó al crear los contenedores por primera vez, los volúmenes apuntan a directorios distintos y los datos (base de datos de Authentik, SQLite de HomeCore) parecen desaparecer — en realidad están en otra ruta.
 
-El comando canónico que se usó para el despliegue inicial y que **debe usarse siempre** es:
+### Actualizar código y reconstruir HomeCore
+
+Este es el comando de uso habitual para desplegar cambios:
 
 ```bash
-docker compose \
-  -f /srv/homecore/homecore/compose/docker-compose.yml \
-  --env-file /srv/homecore/compose/.env \
-  up -d
+cd /srv/homecore/homecore && git pull && docker compose -f compose/docker-compose.yml --env-file /srv/homecore/compose/.env up -d --build homecore
 ```
 
-Con este comando:
-- El fichero compose se lee desde el repo (`/srv/homecore/homecore/compose/`)
-- Las variables de entorno se leen desde `/srv/homecore/compose/.env` (nunca en el repo)
-- Los volúmenes resuelven a `/srv/homecore/homecore/authentik/`, `/srv/homecore/homecore/caddy/`, etc.
+### Arrancar o actualizar todos los servicios
 
-### Comandos habituales
-
-**Arrancar o actualizar todos los servicios:**
 ```bash
-docker compose \
-  -f /srv/homecore/homecore/compose/docker-compose.yml \
-  --env-file /srv/homecore/compose/.env \
-  up -d
+docker compose -f /srv/homecore/homecore/compose/docker-compose.yml --env-file /srv/homecore/compose/.env up -d
 ```
 
-**Actualizar código y reconstruir solo HomeCore:**
+### Ver logs de un servicio
+
 ```bash
-cd /srv/homecore/homecore && git pull
-docker compose \
-  -f /srv/homecore/homecore/compose/docker-compose.yml \
-  --env-file /srv/homecore/compose/.env \
-  up -d --build homecore
+docker compose -f /srv/homecore/homecore/compose/docker-compose.yml --env-file /srv/homecore/compose/.env logs -f homecore
 ```
 
-**Ver logs de un servicio:**
+### Parar todos los servicios
+
 ```bash
-docker compose \
-  -f /srv/homecore/homecore/compose/docker-compose.yml \
-  --env-file /srv/homecore/compose/.env \
-  logs -f homecore
+docker compose -f /srv/homecore/homecore/compose/docker-compose.yml --env-file /srv/homecore/compose/.env down
 ```
 
-**Parar todos los servicios:**
+### Insertar app en la BD existente (cuando el seed ya se ejecutó)
+
 ```bash
-docker compose \
-  -f /srv/homecore/homecore/compose/docker-compose.yml \
-  --env-file /srv/homecore/compose/.env \
-  down
+docker exec homecore-app sqlite3 /data/homecore.db "INSERT INTO apps (nombre, nombre_visible, url, icono, grupos_requeridos) VALUES ('nombre', 'Nombre visible', 'https://...', 'IconoLucide', 'familia');"
 ```
 
 ### Acceso de emergencia a Authentik
@@ -231,7 +201,9 @@ http://10.147.18.210:9000/if/admin/
 | Media y templates de Authentik | `/srv/homecore/homecore/authentik/media/` |
 | Certificados TLS de Authentik | `/srv/homecore/homecore/authentik/certs/` |
 | Datos y config de Caddy | `/srv/homecore/homecore/caddy/data/` |
-| Base de datos SQLite de HomeCore | `/srv/homecore/homecore/homecore/data/` |
+| Base de datos SQLite de HomeCore | `/srv/homecore/homecore/homecore/data/homecore.db` |
+| Archivos de usuario (Filebrowser) | `/srv/homecore/homecore/filebrowser/data/` |
+| Config de Jellyfin | `/srv/homecore/homecore/jellyfin/config/` |
 
 ---
 
@@ -240,4 +212,4 @@ http://10.147.18.210:9000/if/admin/
 Pasar al asistente:
 - Este fichero `docs/progreso.md`
 - El fichero `docs/arquitectura.md`
-- Indicar por qué fase continuar (Fase 3 recomendada)
+- Indicar el tema a tratar (próximo: Fase 6.2 — persistencia de sesión)

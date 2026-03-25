@@ -1,6 +1,6 @@
 # HomeCore — Documento de Arquitectura
 
-**Versión 1.3 · Marzo 2026**
+**Versión 1.4 · Marzo 2026**
 Servidor privado doméstico — Raspberry Pi 4 · 8 GB RAM · SSD 1 TB
 
 ---
@@ -73,7 +73,7 @@ Todos los servicios corren en contenedores Docker, orquestados con Docker Compos
 | Hub / dashboard | HomeCore (Flask + React) | Desarrollo propio. Pantalla principal y módulos personalizados. |
 | Archivos | Filebrowser | Explorador de ficheros web ligero. Subir y descargar contenido al SSD desde navegador o móvil. |
 | Streaming media | Jellyfin | Películas y música. Libre, sin suscripción. SSO con Authentik via plugin. |
-| Backups | Restic + Rclone | Backups incrementales cifrados con copia offsite. **Pendiente — Fase 4.** |
+| Backups | Rclone | Backup semanal a Google Drive. Retención de 4 semanas. |
 
 ---
 
@@ -122,8 +122,8 @@ Hay dos mecanismos de integración según el servicio:
 
 | Grupo (slug) | Nombre en Authentik | Acceso |
 |---|---|---|
-| `familia` | Familia | HomeCore, Filebrowser, Jellyfin |
-| `admin` | authentik Admins | Todo lo anterior más el panel de administración de Authentik |
+| `familia` | Familia | HomeCore, Filebrowser, Jellyfin, Mi cuenta |
+| `admin` | authentik Admins | Todo lo anterior más Administración de Authentik e Invitar usuario |
 
 > `akadmin` debe pertenecer al grupo `admin` (no solo ser superusuario). Verificar en **Directory → Users → akadmin → Groups**.
 
@@ -147,6 +147,25 @@ Cuando el usuario inicia sesión para acceder a HomeCore (forward auth), Authent
 
 **El flujo natural es:** entrar primero a HomeCore → la sesión queda activa → el resto de servicios SSO entran sin pedir login.
 
+### 6.5 Alta de nuevos usuarios
+
+El alta de usuarios se realiza desde HomeCore, sin tocar la interfaz de Authentik. El formulario está disponible solo para el grupo `admin`.
+
+**Proceso:**
+1. Admin abre el tile "Invitar usuario" en HomeCore.
+2. Rellena: nombre completo, nombre de usuario, contraseña inicial y grupo.
+3. HomeCore llama a la API REST de Authentik (`http://authentik-server:9000/api/v3/`) usando el `AUTHENTIK_API_TOKEN`:
+   - `POST /api/v3/core/users/` — crea el usuario
+   - `POST /api/v3/core/groups/{pk}/add_user/` — lo asigna al grupo
+   - `POST /api/v3/core/users/{pk}/set_password/` — establece la contraseña
+4. El admin comparte las credenciales con el usuario.
+5. El usuario puede cambiar su contraseña en `auth.theikaz.com/if/user/` (tile "Mi cuenta").
+
+**Consideraciones:**
+- El `AUTHENTIK_API_TOKEN` es un token de API de Authentik con permisos de admin y sin caducidad. Se genera en Authentik → Admin → Directory → Tokens.
+- No se requiere ningún flow de enrollment ni recovery en Authentik para este proceso.
+- Los usuarios del grupo Familia no tienen permisos de admin en Authentik — el panel `if/user/` solo les muestra sus apps, cambio de contraseña y gestión de sus propios tokens.
+
 ---
 
 ## 7. HomeCore — detalle del hub
@@ -157,6 +176,7 @@ HomeCore es la pantalla principal del sistema. Su función es:
 - Mostrar el catálogo de aplicaciones disponibles para el usuario según sus grupos.
 - Alojar módulos propios desarrollados a medida (inventario, lista de la compra, etc.).
 - Servir como punto de lanzamiento hacia los servicios externos (Filebrowser, Jellyfin).
+- Permitir al administrador crear nuevos usuarios sin salir de HomeCore.
 
 ### 7.2 Arquitectura interna
 
@@ -169,15 +189,16 @@ HomeCore es la pantalla principal del sistema. Su función es:
 
 ### 7.3 Blueprints de la API
 
-| Blueprint | Función |
-|---|---|
-| `/api/apps/catalogo` | Devuelve las apps disponibles para el usuario actual (filtra por grupos de Authentik) |
-| `/api/inventario/*` | Módulo de inventario doméstico |
-| `/api/configuracion/*` | Ajustes del sistema accesibles al admin |
+| Blueprint | Ruta | Función |
+|---|---|---|
+| apps | `/api/apps/catalogo` | Devuelve las apps visibles para el usuario actual (filtra por grupos) |
+| inventario | `/api/inventario/*` | CRUD del módulo de inventario doméstico |
+| configuracion | `/api/configuracion/*` | Gestión del catálogo de apps (solo admin) |
+| admin | `/api/admin/invitar` | Alta de usuarios vía API de Authentik (solo admin) |
 
 ### 7.4 Catálogo de apps
 
-El catálogo es una tabla en SQLite que HomeCore consulta para saber qué apps existen y cuál es su URL.
+El catálogo es una tabla SQLite que HomeCore consulta para saber qué apps mostrar en el dashboard y cuál es su URL.
 
 | Campo | Descripción |
 |---|---|
@@ -187,6 +208,19 @@ El catálogo es una tabla en SQLite que HomeCore consulta para saber qué apps e
 | `icono` | Nombre del icono de `lucide-react` |
 | `grupos_requeridos` | Slugs de grupos separados por coma (ej. `familia`) |
 | `activo` | `1` visible, `0` oculto |
+
+**Apps en el catálogo actual:**
+
+| nombre | nombre_visible | grupos_requeridos |
+|---|---|---|
+| inventario | Inventario | familia |
+| filebrowser | Archivos | familia |
+| jellyfin | Media | familia |
+| micuenta | Mi cuenta | familia |
+| authentik | Administración | admin |
+| invitar | Invitar usuario | admin |
+
+> **Nota:** El seed solo se ejecuta cuando la tabla `apps` está vacía. Para añadir apps a una instalación existente usar `docker exec homecore-app sqlite3 /data/homecore.db "INSERT INTO apps ..."`.
 
 ---
 
@@ -216,7 +250,33 @@ El catálogo es una tabla en SQLite que HomeCore consulta para saber qué apps e
 
 ---
 
-## 9. Estructura de directorios en el SSD
+## 9. Backups (Fase 4)
+
+Backup semanal offsite a Google Drive con Rclone.
+
+| Aspecto | Detalle |
+|---|---|
+| Herramienta | Rclone con remote `gdrive` configurado en la Pi |
+| Destino | `gdrive:HomeCore-backups` (Google Drive) |
+| Frecuencia | Cron cada domingo a las 03:00 |
+| Retención | 4 semanas (los más antiguos se eliminan automáticamente) |
+| Script | `/srv/homecore/homecore/scripts/backup.sh` |
+| Restauración | `/srv/homecore/homecore/scripts/restore.sh` — interactivo, lista backups disponibles en Drive |
+
+**Qué se incluye en cada backup:**
+
+| Dato | Método |
+|---|---|
+| Base de datos de Authentik (PostgreSQL) | `pg_dump` dentro del contenedor |
+| Base de datos de HomeCore (SQLite) | Copia del fichero `/data/homecore.db` |
+| Configuración de Jellyfin | Copia de `/srv/.../jellyfin/config/` |
+| Caddyfile | Copia del fichero de configuración |
+
+**Qué se excluye:** media de Jellyfin (películas/música) — son ficheros originales que el usuario tiene en local.
+
+---
+
+## 10. Estructura de directorios en el SSD
 
 | Ruta en el SSD | Contenido |
 |---|---|
@@ -236,21 +296,6 @@ El catálogo es una tabla en SQLite que HomeCore consulta para saber qué apps e
 
 ---
 
-## 10. Backups (Fase 4 — pendiente)
-
-Estrategia 3-2-1: tres copias, en dos medios distintos, uno fuera del hogar.
-
-| Capa | Detalle |
-|---|---|
-| Herramienta | Restic para snapshots incrementales cifrados + Rclone para sincronización offsite. |
-| Backup local | Snapshot diario en `/srv/homecore/backups/` — retención 7 días. |
-| Backup offsite | Rclone sincroniza los snapshots cifrados a un proveedor cloud. |
-| Qué se incluye | Base de datos PostgreSQL (Authentik), SQLite de HomeCore, Caddyfile, config de Jellyfin. |
-| Qué se excluye | Media de Jellyfin (películas/música) — son ficheros originales recuperables. |
-| Frecuencia | Cron diario a las 03:00. Verificación de integridad semanal. |
-
----
-
 ## 11. Fases de construcción
 
 | Fase | Título | Estado |
@@ -258,7 +303,10 @@ Estrategia 3-2-1: tres copias, en dos medios distintos, uno fuera del hogar.
 | Fase 1 | Base de infraestructura | ✅ Completada |
 | Fase 2 | HomeCore como dashboard | ✅ Completada |
 | Fase 3 | Servicios de contenido (Filebrowser + Jellyfin) | ✅ Completada — 25 marzo 2026 |
-| Fase 4 | Estabilidad y backups | Pendiente |
+| Fase 4 | Estabilidad y backups | ✅ Completada — 25 marzo 2026 |
+| Fase 5 | Experiencia de usuario y pulido | ✅ Completada — 25 marzo 2026 |
+| Fase 6.1 | Alta de usuarios desde HomeCore | ✅ Completada — 25 marzo 2026 |
+| Fase 6.2 | Persistencia de sesión | Pendiente |
 
 ---
 
@@ -292,7 +340,6 @@ Añadir cualquier servicio nuevo sigue siempre el mismo proceso:
 | Docker Compose | Herramienta para definir y ejecutar múltiples contenedores Docker desde un único fichero YAML. |
 | Forward Auth | Mecanismo por el que Caddy consulta a Authentik si el usuario tiene sesión válida antes de servir cualquier ruta. |
 | OIDC | OpenID Connect. Protocolo estándar de autenticación delegada. Usado por Jellyfin. |
-| Restic | Herramienta de backup incremental con cifrado. |
 | Rclone | Herramienta de sincronización de ficheros hacia proveedores cloud. |
 | SSO | Single Sign-On. Un único login da acceso a todos los servicios sin volver a autenticarse. |
 | ZeroTier | Red virtual privada P2P. Usada exclusivamente para acceso de administración a la Pi por SSH. |
