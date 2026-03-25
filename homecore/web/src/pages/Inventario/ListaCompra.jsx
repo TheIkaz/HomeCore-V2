@@ -17,7 +17,11 @@ export default function ListaCompra() {
       getProductos().then((d) => setTodosProductos(d.datos)),
     ]).finally(() => setCargando(false));
 
-  useEffect(() => { cargar(); }, []);
+  useEffect(() => {
+    cargar();
+    const intervalo = setInterval(cargar, 10000);
+    return () => clearInterval(intervalo);
+  }, []);
 
   if (cargando) return <p className={styles.cargando}>Cargando...</p>;
 
