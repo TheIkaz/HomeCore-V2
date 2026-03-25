@@ -1,6 +1,6 @@
 import os
+import secrets
 import requests
-from urllib.parse import urlparse, urlunparse
 from flask import Blueprint, jsonify, request
 from ..utils.auth import es_admin
 
@@ -85,22 +85,17 @@ def invitar():
     except requests.RequestException as e:
         return jsonify({"status": "error", "mensaje": f"Error asignando grupo: {e}"}), 500
 
-    # 4. Generar enlace para que el usuario establezca su contraseña
+    # 4. Asignar contraseña temporal
+    password_temporal = secrets.token_urlsafe(12)
     try:
         r = requests.post(
-            f"{_AUTHENTIK_URL}/api/v3/core/users/{user_pk}/recovery/",
+            f"{_AUTHENTIK_URL}/api/v3/core/users/{user_pk}/set_password/",
             headers=_headers(),
+            json={"password": password_temporal},
             timeout=10,
         )
-        if not r.ok:
-            return jsonify({"status": "error", "mensaje": f"Usuario creado pero error generando enlace: {r.text}"}), 500
-        enlace_interno = r.json().get("link", "")
+        r.raise_for_status()
     except requests.RequestException as e:
-        return jsonify({"status": "error", "mensaje": f"Error generando enlace: {e}"}), 500
+        return jsonify({"status": "error", "mensaje": f"Error asignando contraseña: {e}"}), 500
 
-    # Sustituir la URL interna de Docker por el dominio público
-    dominio = os.environ.get("DOMINIO", "")
-    parsed  = urlparse(enlace_interno)
-    enlace  = urlunparse(("https", f"auth.{dominio}", parsed.path, parsed.params, parsed.query, parsed.fragment))
-
-    return jsonify({"status": "ok", "enlace": enlace})
+    return jsonify({"status": "ok", "username": username, "password": password_temporal})

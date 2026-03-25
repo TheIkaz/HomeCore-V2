@@ -5,11 +5,11 @@ import styles from "./Invitar.module.css";
 
 export default function Invitar() {
   const navigate = useNavigate();
-  const [form, setForm]         = useState({ nombre: "", username: "", grupo: "familia" });
-  const [enlace, setEnlace]     = useState(null);
-  const [error, setError]       = useState(null);
-  const [enviando, setEnviando] = useState(false);
-  const [copiado, setCopiado]   = useState(false);
+  const [form, setForm]               = useState({ nombre: "", username: "", grupo: "familia" });
+  const [credenciales, setCredenciales] = useState(null);
+  const [error, setError]             = useState(null);
+  const [enviando, setEnviando]       = useState(false);
+  const [copiado, setCopiado]         = useState(false);
 
   const cambiar = (e) => {
     const { name, value } = e.target;
@@ -19,11 +19,11 @@ export default function Invitar() {
   const generar = async (e) => {
     e.preventDefault();
     setError(null);
-    setEnlace(null);
+    setCredenciales(null);
     setEnviando(true);
     try {
       const res = await invitarUsuario(form);
-      setEnlace(res.enlace);
+      setCredenciales(res);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -32,7 +32,8 @@ export default function Invitar() {
   };
 
   const copiar = () => {
-    navigator.clipboard.writeText(enlace).then(() => {
+    const texto = `Usuario: ${credenciales.username}\nContraseña: ${credenciales.password}`;
+    navigator.clipboard.writeText(texto).then(() => {
       setCopiado(true);
       setTimeout(() => setCopiado(false), 2000);
     });
@@ -63,20 +64,27 @@ export default function Invitar() {
         {error && <p className={styles.error}>{error}</p>}
 
         <button type="submit" className={styles.btnPrimario} disabled={enviando}>
-          {enviando ? "Creando usuario..." : "Crear usuario y generar enlace"}
+          {enviando ? "Creando usuario..." : "Crear usuario"}
         </button>
       </form>
 
-      {enlace && (
+      {credenciales && (
         <div className={styles.resultado}>
-          <p className={styles.resultadoTitulo}>Usuario creado. Envía este enlace para que establezca su contraseña:</p>
-          <div className={styles.enlaceBox}>
-            <span className={styles.enlaceTexto}>{enlace}</span>
-            <button className={styles.btnCopiar} onClick={copiar}>
-              {copiado ? "¡Copiado!" : "Copiar"}
-            </button>
+          <p className={styles.resultadoTitulo}>Usuario creado. Comparte estas credenciales:</p>
+          <div className={styles.credencialesBox}>
+            <div className={styles.credencialFila}>
+              <span className={styles.credencialLabel}>Usuario</span>
+              <span className={styles.credencialValor}>{credenciales.username}</span>
+            </div>
+            <div className={styles.credencialFila}>
+              <span className={styles.credencialLabel}>Contraseña temporal</span>
+              <span className={styles.credencialValor}>{credenciales.password}</span>
+            </div>
           </div>
-          <p className={styles.nota}>El enlace es de un solo uso.</p>
+          <button className={styles.btnCopiar} onClick={copiar}>
+            {copiado ? "¡Copiado!" : "Copiar credenciales"}
+          </button>
+          <p className={styles.nota}>El usuario deberá cambiar la contraseña en su primer inicio de sesión.</p>
         </div>
       )}
     </div>
