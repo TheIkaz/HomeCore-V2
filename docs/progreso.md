@@ -166,6 +166,24 @@ Módulo de calendario compartido visible para todos los usuarios del grupo `fami
 
 ---
 
+## Mejoras pendientes en módulos existentes
+
+### Calendario
+
+1. **Editar evento existente** — formulario de edición sobre un evento ya creado (título, fecha, hora, descripción, categoría).
+2. **Eventos de varios días / intervalo** — un evento puede tener fecha de inicio y fecha de fin. El calendario debe mostrar el evento en todos los días del rango.
+
+### Inventario
+
+1. **Grupos / etiquetas en la lista general** — agrupar productos por categoría (baño, limpieza, conservas, etc.) o añadir etiquetas para poder filtrar.
+2. **Añadir artículos nuevos desde la lista de la compra** — si se compra algo que no estaba en el inventario, poder darlo de alta directamente desde la pantalla de lista de la compra.
+3. **Flujo de compra completada:**
+   - Cada elemento de la lista de la compra tiene un tick para marcarlo como "metido en el carro".
+   - Al final de la lista, botón **"Compra hecha"**.
+   - Al pulsar: los artículos marcados se vuelcan al inventario (se suma la cantidad comprada) y se eliminan de la lista de la compra. Los no marcados permanecen en la lista.
+
+---
+
 ## Ideas de futuras aplicaciones en HomeCore
 
 Módulos que podrían añadirse como tiles al dashboard en el futuro:
