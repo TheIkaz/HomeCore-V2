@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Fondo -->
+  <rect width="512" height="512" rx="96" fill="#1e293b"/>
+  <!-- Casa -->
+  <polygon points="256,96 96,256 144,256 144,400 224,400 224,304 288,304 288,400 368,400 368,256 416,256" fill="#6366f1"/>
+  <!-- Punto brillante en el tejado -->
+  <circle cx="256" cy="96" r="16" fill="#a5b4fc"/>
+</svg>
