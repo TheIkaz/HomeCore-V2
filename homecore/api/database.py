@@ -65,6 +65,7 @@ def _seed_apps():
         ("filebrowser",  "Archivos",      "https://files.theikaz.com",        "FolderOpen", "familia"),
         ("jellyfin",     "Media",         "https://media.theikaz.com/sso/OID/start/authentik", "Play", "familia"),
         ("authentik",    "Administración","https://auth.theikaz.com/if/admin/","Shield",     "admin"),
+        ("invitar",      "Invitar usuario","/admin/invitar",                   "UserPlus",   "admin"),
     ]
     db.executemany(
         "INSERT INTO apps (nombre, nombre_visible, url, icono, grupos_requeridos) VALUES (?,?,?,?,?)",

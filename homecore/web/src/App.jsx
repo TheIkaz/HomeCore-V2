@@ -4,6 +4,7 @@ import InventarioInicio from "./pages/Inventario/InventarioInicio";
 import InventarioLista from "./pages/Inventario/InventarioLista";
 import Agotados from "./pages/Inventario/Agotados";
 import ListaCompra from "./pages/Inventario/ListaCompra";
+import Invitar from "./pages/Admin/Invitar";
 import Layout from "./components/Layout";
 
 export default function App() {
@@ -15,6 +16,7 @@ export default function App() {
         <Route path="/inventario/lista"      element={<InventarioLista />} />
         <Route path="/inventario/agotados"   element={<Agotados />} />
         <Route path="/inventario/compra"     element={<ListaCompra />} />
+        <Route path="/admin/invitar"          element={<Invitar />} />
       </Route>
     </Routes>
   );

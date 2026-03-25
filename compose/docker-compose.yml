@@ -152,6 +152,8 @@ services:
     container_name: homecore-app
     environment:
       DATABASE_PATH: /data/homecore.db
+      DOMINIO: ${DOMINIO}
+      AUTHENTIK_API_TOKEN: ${AUTHENTIK_API_TOKEN}
     volumes:
       - ../homecore/data:/data
     networks:
