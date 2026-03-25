@@ -1,5 +1,4 @@
 import os
-import uuid
 import requests
 from flask import Blueprint, jsonify, request
 from ..utils.auth import es_admin
@@ -7,7 +6,10 @@ from ..utils.auth import es_admin
 admin_bp = Blueprint("admin", __name__)
 
 _AUTHENTIK_URL = "http://authentik-server:9000"
-_FLOW_SLUG     = "enrollment-invitation"
+_GRUPOS = {
+    "familia": "Familia",
+    "admin":   "authentik Admins",
+}
 
 
 def _headers():
@@ -28,48 +30,70 @@ def _solo_admin(fn):
 @admin_bp.route("/invitar", methods=["POST"])
 @_solo_admin
 def invitar():
-    data   = request.get_json(silent=True) or {}
-    nombre = data.get("nombre", "").strip()
-    email  = data.get("email", "").strip()
+    data     = request.get_json(silent=True) or {}
+    nombre   = data.get("nombre",   "").strip()
+    email    = data.get("email",    "").strip()
+    username = data.get("username", "").strip()
+    grupo    = data.get("grupo",    "familia").strip()
 
-    if not nombre or not email:
-        return jsonify({"status": "error", "mensaje": "Nombre y email son obligatorios"}), 400
+    if not all([nombre, email, username]):
+        return jsonify({"status": "error", "mensaje": "Nombre, email y nombre de usuario son obligatorios"}), 400
 
-    # Obtener UUID del flow de enrollment
+    nombre_grupo = _GRUPOS.get(grupo)
+    if not nombre_grupo:
+        return jsonify({"status": "error", "mensaje": "Grupo no válido"}), 400
+
+    # 1. Buscar el grupo en Authentik
     try:
         r = requests.get(
-            f"{_AUTHENTIK_URL}/api/v3/flows/instances/?slug={_FLOW_SLUG}",
+            f"{_AUTHENTIK_URL}/api/v3/core/groups/?name={nombre_grupo}",
             headers=_headers(), timeout=10,
         )
         r.raise_for_status()
-        resultados = r.json().get("results", [])
-        if not resultados:
-            return jsonify({"status": "error", "mensaje": "Flow de enrollment no encontrado en Authentik"}), 500
-        flow_pk = resultados[0]["pk"]
-    except requests.RequestException:
-        return jsonify({"status": "error", "mensaje": "No se pudo conectar con Authentik"}), 500
+        grupos = r.json().get("results", [])
+        if not grupos:
+            return jsonify({"status": "error", "mensaje": f"Grupo '{nombre_grupo}' no encontrado"}), 500
+        grupo_pk = grupos[0]["pk"]
+    except requests.RequestException as e:
+        return jsonify({"status": "error", "mensaje": f"Error buscando grupo: {e}"}), 500
 
-    # Crear la invitación
+    # 2. Crear el usuario
     try:
-        inv = requests.post(
-            f"{_AUTHENTIK_URL}/api/v3/stages/invitation/invitations/",
+        r = requests.post(
+            f"{_AUTHENTIK_URL}/api/v3/core/users/",
             headers=_headers(),
-            json={
-                "name":       f"inv-{uuid.uuid4().hex[:8]}",
-                "flow":       flow_pk,
-                "fixed_data": {"name": nombre, "email": email},
-                "single_use": True,
-            },
+            json={"username": username, "name": nombre, "email": email, "is_active": True},
             timeout=10,
         )
-        if not inv.ok:
-            return jsonify({"status": "error", "mensaje": f"Authentik: {inv.status_code} — {inv.text}"}), 500
-        inv.raise_for_status()
+        if not r.ok:
+            return jsonify({"status": "error", "mensaje": f"Error al crear usuario: {r.text}"}), 500
+        user_pk = r.json()["pk"]
     except requests.RequestException as e:
-        return jsonify({"status": "error", "mensaje": f"Error de conexión: {e}"}), 500
+        return jsonify({"status": "error", "mensaje": f"Error creando usuario: {e}"}), 500
 
-    dominio = os.environ.get("DOMINIO", "")
-    inv_pk  = inv.json()["pk"]
-    enlace  = f"https://auth.{dominio}/if/flow/{_FLOW_SLUG}/?itoken={inv_pk}"
+    # 3. Añadir al grupo
+    try:
+        r = requests.post(
+            f"{_AUTHENTIK_URL}/api/v3/core/groups/{grupo_pk}/add_user/",
+            headers=_headers(),
+            json={"pk": user_pk},
+            timeout=10,
+        )
+        r.raise_for_status()
+    except requests.RequestException as e:
+        return jsonify({"status": "error", "mensaje": f"Error asignando grupo: {e}"}), 500
+
+    # 4. Generar enlace para que el usuario establezca su contraseña
+    try:
+        r = requests.post(
+            f"{_AUTHENTIK_URL}/api/v3/core/users/{user_pk}/recovery/",
+            headers=_headers(),
+            timeout=10,
+        )
+        if not r.ok:
+            return jsonify({"status": "error", "mensaje": f"Usuario creado pero error generando enlace: {r.text}"}), 500
+        enlace = r.json().get("link", "")
+    except requests.RequestException as e:
+        return jsonify({"status": "error", "mensaje": f"Error generando enlace: {e}"}), 500
 
     return jsonify({"status": "ok", "enlace": enlace})
