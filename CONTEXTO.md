@@ -28,7 +28,7 @@ Lee en este orden antes de hacer nada.
 - ✅ Fase 6.1 — Alta de usuarios desde HomeCore (formulario admin → API Authentik → usuario creado con contraseña)
 - ✅ Fase 6.2 — Persistencia de sesión (Login Stage → 30 días)
 
-**Próxima fase:** 7 — Lista de la compra en tiempo real
+**Próxima fase:** 8 — App móvil / PWA
 
 **Sistema en producción en:** Raspberry Pi 4 · 8 GB RAM · SSD 1 TB
 

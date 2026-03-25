@@ -123,9 +123,9 @@ Configurado en Authentik → Flows & Stages → Stage `default-authentication-lo
 
 Sin cambios de código. Los nuevos logins duran 30 días.
 
-### Fase 7 — Lista de la compra en tiempo real
+### ~~Fase 7 — Lista de la compra en tiempo real~~ ✅ — 25 marzo 2026
 
-Ahora dos personas editando la lista de la compra a la vez pueden pisarse los cambios. Implementar WebSockets o refresco automático periódico para que los cambios de un usuario sean visibles al instante para los demás.
+Polling cada 10 segundos en `ListaCompra.jsx` con `setInterval` + limpieza en el unmount. Sin cambios en el backend.
 
 ### Fase 8 — App móvil / PWA
 
