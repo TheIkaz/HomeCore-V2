@@ -9,9 +9,9 @@ Lee en este orden antes de hacer nada.
 
 | Orden | Fichero | Por qué |
 |---|---|---|
-| 1 | `docs/progreso.md` | Estado actual del proyecto: qué está hecho, qué falta, comandos de operación |
-| 2 | `docs/arquitectura.md` | Visión completa del sistema: hardware, stack, fases, autenticación |
-| 3 | `docs/conexiones.md` | Referencia técnica detallada: cómo está configurado cada servicio, variables de entorno, diagnóstico |
+| 1 | `docs/progreso.md` | Estado actual: qué está hecho, roadmap, comandos de operación |
+| 2 | `docs/arquitectura.md` | Visión completa: hardware, stack, autenticación, módulos |
+| 3 | `docs/conexiones.md` | Referencia técnica detallada: configuración de cada servicio, diagnóstico |
 | 4 | `caddy/Caddyfile` | Configuración real del reverse proxy |
 | 5 | `compose/docker-compose.yml` | Todos los servicios, volúmenes y redes |
 
@@ -24,6 +24,10 @@ Lee en este orden antes de hacer nada.
 - ✅ Fase 2 — HomeCore dashboard (Flask + React, inventario, catálogo de apps)
 - ✅ Fase 3 — Servicios de contenido (Filebrowser + Jellyfin con SSO)
 - ✅ Fase 4 — Backups semanales a Google Drive (Rclone)
+- ✅ Fase 5 — UX: estados de carga, modal de confirmación, HomeCore como punto de entrada único, tile de admin
+- ✅ Fase 6.1 — Alta de usuarios desde HomeCore (formulario admin → API Authentik → usuario creado con contraseña)
+
+**Próxima fase:** 6.2 — Persistencia de sesión (ajustar duración de sesión en Authentik)
 
 **Sistema en producción en:** Raspberry Pi 4 · 8 GB RAM · SSD 1 TB
 
@@ -38,49 +42,24 @@ Lee en este orden antes de hacer nada.
 
 ---
 
-## 3. Estado — todas las fases completadas ✅
+## 3. Cosas importantes a tener en cuenta
 
-**Fase 5 completada (25 marzo 2026):**
-- SSO Jellyfin funcionando correctamente con sesión activa
-- HomeCore configurado como único punto de entrada (Authentik → Brands → Default application)
-- App "Administración" visible solo para admin → `auth.theikaz.com/if/admin/`
-- Estados de carga en todos los componentes React
-- Modal de confirmación propio (reemplaza `confirm()` nativo)
+### Comando para actualizar código en la Pi
 
-**Fase 6 — en curso:**
-- **6.1 Alta de usuarios por invitación** — formulario en HomeCore (admin) → API Authentik → enlace de invitación → enrollment flow → usuario creado en el grupo correcto.
-- **6.2 Persistencia de sesión** — revisar duración de sesión en Authentik para que la familia no tenga que autenticarse frecuentemente.
-
----
-
-## 4. Cosas importantes a tener en cuenta
-
-### Comandos en la Pi
-Siempre usar el comando canónico con rutas absolutas:
 ```bash
-docker compose \
-  -f /srv/homecore/homecore/compose/docker-compose.yml \
-  --env-file /srv/homecore/compose/.env \
-  up -d
+cd /srv/homecore/homecore && git pull && docker compose -f compose/docker-compose.yml --env-file /srv/homecore/compose/.env up -d --build homecore
 ```
-Las rutas relativas en el compose resuelven desde el directorio del fichero, no desde donde se ejecuta el comando.
 
-### Actualizar código en la Pi
+### Arrancar o actualizar todos los servicios
+
 ```bash
-cd /srv/homecore/homecore && git pull
-docker compose \
-  -f /srv/homecore/homecore/compose/docker-compose.yml \
-  --env-file /srv/homecore/compose/.env \
-  up -d --build homecore
+docker compose -f /srv/homecore/homecore/compose/docker-compose.yml --env-file /srv/homecore/compose/.env up -d
 ```
 
 ### Caddyfile — problema de inode
 Cuando git reemplaza el Caddyfile, Docker puede retener el inode antiguo. Si un subdominio muestra página en blanco tras un `git pull`, forzar recreación:
 ```bash
-docker compose \
-  -f /srv/homecore/homecore/compose/docker-compose.yml \
-  --env-file /srv/homecore/compose/.env \
-  up -d --force-recreate caddy
+docker compose -f /srv/homecore/homecore/compose/docker-compose.yml --env-file /srv/homecore/compose/.env up -d --force-recreate caddy
 ```
 
 ### Jellyfin SSO
@@ -89,15 +68,23 @@ docker compose \
 - La sesión de Authentik se comparte: iniciar sesión en HomeCore da acceso directo a Jellyfin sin login adicional
 
 ### El `.env` nunca está en Git
-Vive en `/srv/homecore/compose/.env` en la Pi. Nunca en el repositorio.
+Vive en `/srv/homecore/compose/.env` en la Pi. Plantilla en `compose/docker-compose.example.env`.
+
+### Insertar app en la BD existente
+El seed solo corre cuando la tabla `apps` está vacía. Para añadir apps a una instalación existente:
+```bash
+docker exec homecore-app sqlite3 /data/homecore.db "INSERT INTO apps (nombre, nombre_visible, url, icono, grupos_requeridos) VALUES ('nombre', 'Nombre visible', 'https://...', 'IconoLucide', 'familia');"
+```
 
 ---
 
-## 5. Código fuente relevante
+## 4. Código fuente relevante
 
 | Fichero | Qué hace |
 |---|---|
-| `homecore/api/utils/auth.py` | Lee las cabeceras `X-Authentik-*` y extrae usuario y grupos |
+| `homecore/api/utils/auth.py` | Lee cabeceras `X-Authentik-*`, extrae usuario y grupos |
 | `homecore/api/blueprints/apps.py` | `GET /api/apps/catalogo` — filtra apps por grupo del usuario |
+| `homecore/api/blueprints/admin.py` | `POST /api/admin/invitar` — crea usuario en Authentik vía API |
 | `homecore/api/database.py` | SQLite: tablas `apps` y `productos`, seed inicial |
 | `homecore/web/src/pages/Dashboard.jsx` | Grid de apps dinámico cargado desde la API |
+| `homecore/web/src/pages/Admin/Invitar.jsx` | Formulario de alta de usuarios (solo admin) |
