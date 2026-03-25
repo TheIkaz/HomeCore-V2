@@ -26,8 +26,9 @@ Lee en este orden antes de hacer nada.
 - ✅ Fase 4 — Backups semanales a Google Drive (Rclone)
 - ✅ Fase 5 — UX: estados de carga, modal de confirmación, HomeCore como punto de entrada único, tile de admin
 - ✅ Fase 6.1 — Alta de usuarios desde HomeCore (formulario admin → API Authentik → usuario creado con contraseña)
+- ✅ Fase 6.2 — Persistencia de sesión (Login Stage → 30 días)
 
-**Próxima fase:** 6.2 — Persistencia de sesión (ajustar duración de sesión en Authentik)
+**Próxima fase:** 7 — Lista de la compra en tiempo real
 
 **Sistema en producción en:** Raspberry Pi 4 · 8 GB RAM · SSD 1 TB
 

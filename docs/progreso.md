@@ -115,9 +115,13 @@ Qué incluye el backup:
 
 ## Roadmap — Pasos futuros
 
-### Fase 6.2 — Persistencia de sesión
+### ~~Fase 6.2 — Persistencia de sesión~~ ✅ — 25 marzo 2026
 
-Por defecto Authentik caduca la sesión en pocas horas. Para una familia lo ideal es sesiones largas (semanas o meses). Se configura en Authentik → System → Brands ajustando la duración del token y de la sesión. Impacto alto en experiencia diaria, esfuerzo bajo.
+Configurado en Authentik → Flows & Stages → Stage `default-authentication-login`:
+- **Session duration**: `days=30`
+- **Remember me offset**: `days=30`
+
+Sin cambios de código. Los nuevos logins duran 30 días.
 
 ### Fase 7 — Lista de la compra en tiempo real
 
