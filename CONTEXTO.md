@@ -27,8 +27,13 @@ Lee en este orden antes de hacer nada.
 - ✅ Fase 5 — UX: estados de carga, modal de confirmación, HomeCore como punto de entrada único, tile de admin
 - ✅ Fase 6.1 — Alta de usuarios desde HomeCore (formulario admin → API Authentik → usuario creado con contraseña)
 - ✅ Fase 6.2 — Persistencia de sesión (Login Stage → 30 días)
+- ✅ Fase 7 — Lista de la compra en tiempo real (polling 10 s)
+- ✅ Fase 8 — App móvil / PWA (manifest, service worker, iconos PNG)
+- ✅ Fase 9 — Monitorización de la Pi — página `/admin/sistema` (CPU, RAM, temp, disco, sparklines)
+- ✅ Fase 10 — Documento técnico de arquitectura detallado (`docs/arquitectura_tecnica.md`)
+- ✅ Fase 11 — Calendario familiar (módulo interno, categorías, eventos compartidos, polling 30 s)
 
-**Próxima fase:** sin fases pendientes — ver roadmap en progreso.md para ideas futuras
+**Próxima fase:** Fase 12 — Gestor de contraseñas (Vaultwarden) — pendiente de implementación
 
 **Sistema en producción en:** Raspberry Pi 4 · 8 GB RAM · SSD 1 TB
 
@@ -86,6 +91,11 @@ docker exec homecore-app sqlite3 /data/homecore.db "INSERT INTO apps (nombre, no
 | `homecore/api/utils/auth.py` | Lee cabeceras `X-Authentik-*`, extrae usuario y grupos |
 | `homecore/api/blueprints/apps.py` | `GET /api/apps/catalogo` — filtra apps por grupo del usuario |
 | `homecore/api/blueprints/admin.py` | `POST /api/admin/invitar` — crea usuario en Authentik vía API |
-| `homecore/api/database.py` | SQLite: tablas `apps` y `productos`, seed inicial |
+| `homecore/api/database.py` | SQLite: tablas `apps`, `productos`, `categorias_calendario`, `eventos_calendario`, seed inicial |
+| `homecore/api/blueprints/calendario.py` | CRUD de eventos y categorías del calendario |
 | `homecore/web/src/pages/Dashboard.jsx` | Grid de apps dinámico cargado desde la API |
 | `homecore/web/src/pages/Admin/Invitar.jsx` | Formulario de alta de usuarios (solo admin) |
+| `homecore/web/src/pages/Admin/Sistema.jsx` | Monitorización Pi: CPU, RAM, temp, disco, sparklines (solo admin) |
+| `homecore/web/src/pages/Calendario/Calendario.jsx` | Calendario familiar mensual con eventos y categorías |
+| `homecore/web/public/manifest.json` | PWA manifest — nombre, colores, iconos |
+| `homecore/web/public/sw.js` | Service worker — cache-first para estáticos, network-first para /api/ |

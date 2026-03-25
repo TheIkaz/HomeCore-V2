@@ -213,10 +213,12 @@ El catálogo es una tabla SQLite que HomeCore consulta para saber qué apps most
 
 | nombre | nombre_visible | grupos_requeridos |
 |---|---|---|
+| calendario | Calendario | familia |
 | inventario | Inventario | familia |
 | filebrowser | Archivos | familia |
 | jellyfin | Media | familia |
 | micuenta | Mi cuenta | familia |
+| sistema | Estado Raspberry | admin |
 | authentik | Administración | admin |
 | invitar | Invitar usuario | admin |
 
@@ -306,7 +308,13 @@ Backup semanal offsite a Google Drive con Rclone.
 | Fase 4 | Estabilidad y backups | ✅ Completada — 25 marzo 2026 |
 | Fase 5 | Experiencia de usuario y pulido | ✅ Completada — 25 marzo 2026 |
 | Fase 6.1 | Alta de usuarios desde HomeCore | ✅ Completada — 25 marzo 2026 |
-| Fase 6.2 | Persistencia de sesión | Pendiente |
+| Fase 6.2 | Persistencia de sesión | ✅ Completada — 25 marzo 2026 |
+| Fase 7 | Lista de la compra en tiempo real | ✅ Completada — 25 marzo 2026 |
+| Fase 8 | App móvil / PWA | ✅ Completada — 25 marzo 2026 |
+| Fase 9 | Monitorización de la Pi (solo admin) | ✅ Completada — 25 marzo 2026 |
+| Fase 10 | Documento técnico detallado de arquitectura | ✅ Completada — 25 marzo 2026 |
+| Fase 11 | Calendario familiar | ✅ Completada — 25 marzo 2026 |
+| Fase 12 | Gestor de contraseñas (Vaultwarden) | Pendiente |
 
 ---
 
