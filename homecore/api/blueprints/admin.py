@@ -1,5 +1,6 @@
 import os
 import requests
+from urllib.parse import urlparse, urlunparse
 from flask import Blueprint, jsonify, request
 from ..utils.auth import es_admin
 
@@ -94,8 +95,13 @@ def invitar():
         )
         if not r.ok:
             return jsonify({"status": "error", "mensaje": f"Usuario creado pero error generando enlace: {r.text}"}), 500
-        enlace = r.json().get("link", "")
+        enlace_interno = r.json().get("link", "")
     except requests.RequestException as e:
         return jsonify({"status": "error", "mensaje": f"Error generando enlace: {e}"}), 500
+
+    # Sustituir la URL interna de Docker por el dominio público
+    dominio = os.environ.get("DOMINIO", "")
+    parsed  = urlparse(enlace_interno)
+    enlace  = urlunparse(("https", f"auth.{dominio}", parsed.path, parsed.params, parsed.query, parsed.fragment))
 
     return jsonify({"status": "ok", "enlace": enlace})
