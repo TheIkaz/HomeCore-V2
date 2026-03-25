@@ -33,11 +33,10 @@ def _solo_admin(fn):
 def invitar():
     data     = request.get_json(silent=True) or {}
     nombre   = data.get("nombre",   "").strip()
-    email    = data.get("email",    "").strip()
     username = data.get("username", "").strip()
     grupo    = data.get("grupo",    "familia").strip()
 
-    if not all([nombre, email, username]):
+    if not all([nombre, username]):
         return jsonify({"status": "error", "mensaje": "Nombre, email y nombre de usuario son obligatorios"}), 400
 
     nombre_grupo = _GRUPOS.get(grupo)
@@ -65,7 +64,7 @@ def invitar():
         r = requests.post(
             f"{_AUTHENTIK_URL}/api/v3/core/users/",
             headers=_headers(),
-            json={"username": username, "name": nombre, "email": email, "is_active": True},
+            json={"username": username, "name": nombre, "is_active": True},
             timeout=10,
         )
         if not r.ok:

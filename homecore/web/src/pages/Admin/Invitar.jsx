@@ -5,7 +5,7 @@ import styles from "./Invitar.module.css";
 
 export default function Invitar() {
   const navigate = useNavigate();
-  const [form, setForm]         = useState({ nombre: "", email: "", username: "", grupo: "familia" });
+  const [form, setForm]         = useState({ nombre: "", username: "", grupo: "familia" });
   const [enlace, setEnlace]     = useState(null);
   const [error, setError]       = useState(null);
   const [enviando, setEnviando] = useState(false);
@@ -47,10 +47,6 @@ export default function Invitar() {
         <div className={styles.campo}>
           <label>Nombre completo</label>
           <input name="nombre" value={form.nombre} onChange={cambiar} required placeholder="Ej: María García" />
-        </div>
-        <div className={styles.campo}>
-          <label>Email</label>
-          <input name="email" type="email" value={form.email} onChange={cambiar} required placeholder="correo@ejemplo.com" />
         </div>
         <div className={styles.campo}>
           <label>Nombre de usuario</label>
