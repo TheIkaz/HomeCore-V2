@@ -38,13 +38,12 @@ Lee en este orden antes de hacer nada.
 
 ---
 
-## 3. Estado — todas las fases completadas ✅
+## 3. Próximo trabajo — Fase 5 (experiencia de usuario)
 
-**Fase 4 completada (25 marzo 2026):**
-- `scripts/backup.sh` — backup semanal a `gdrive:HomeCore-backups`, retención 4 semanas, cron activo
-- `scripts/restore.sh` — restauración interactiva desde Google Drive
-- Watchtower descartado (riesgo de actualizaciones no controladas)
-- Pendiente manual: crear usuarios adicionales en Authentik para la familia
+1. **Bug Jellyfin SSO** — al entrar desde HomeCore pide login aunque la sesión está activa. Sesión confirmada OK, authorization flow correcto. Causa pendiente.
+2. **HomeCore como único punto de entrada** — configurar en Authentik "Default application" → HomeCore para que el portal de Authentik no sea visible para usuarios normales.
+3. **Estados de carga en React** — spinner en Dashboard, InventarioLista, Agotados y ListaCompra.
+4. **Modal de confirmación propio** — reemplazar `confirm()` nativo por componente React.
 
 ---
 

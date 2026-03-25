@@ -89,6 +89,28 @@ SSO:
 - ~~`scripts/restore.sh`~~ ✅ — restauración interactiva desde Drive
 - ~~Watchtower~~ — descartado (riesgo de actualizaciones automáticas no controladas)
 
+### Fase 5 — Experiencia de usuario y pulido
+
+**Objetivo:** que el sistema sea cómodo y natural para cualquier miembro de la familia, sin fricciones de login ni confusión sobre qué pantalla usar como punto de entrada.
+
+#### 5.1 Sesión unificada Jellyfin (bug)
+- **Problema:** al entrar en HomeCore y pulsar "Media", Jellyfin vuelve a pedir login en Authentik aunque la sesión ya está activa.
+- **Diagnóstico:** sesión confirmada activa (`auth.theikaz.com/if/user/` carga sin login). Authorization flow del provider OIDC es correcto (`default-provider-authorization-implicit-consent`). Causa pendiente de identificar.
+- **Resultado esperado:** clic en Media → Jellyfin carga directamente sin pedir credenciales.
+
+#### 5.2 HomeCore como único punto de entrada
+- **Problema:** Authentik tiene su propio portal de usuario (`auth.theikaz.com/if/user/`) que también lista apps. Genera confusión — hay dos "dashboards".
+- **Solución:** configurar en Authentik que tras el login redirija siempre a HomeCore en vez de mostrar su portal. Los usuarios normales nunca deberían ver el portal de Authentik.
+- **Cómo:** en Authentik → System → Brands → establecer "Default application" a HomeCore.
+
+#### 5.3 Estados de carga en React
+- **Problema:** los componentes muestran pantalla vacía mientras esperan la API. Da sensación de pantalla rota.
+- **Solución:** añadir spinner o skeleton en Dashboard, InventarioLista, Agotados y ListaCompra.
+
+#### 5.4 Diálogos de confirmación propios
+- **Problema:** `confirm()` nativo del navegador bloqueado en algunos contextos y con aspecto anticuado.
+- **Solución:** reemplazar por un modal de confirmación propio (componente React reutilizable).
+
 ### Pendiente fuera del código
 - ~~Registrar dominio `theikaz.com` en Cloudflare~~ ✅
 - ~~Obtener token del túnel de Cloudflare~~ ✅
