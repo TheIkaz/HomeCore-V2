@@ -61,9 +61,11 @@ def invitar():
             },
             timeout=10,
         )
+        if not inv.ok:
+            return jsonify({"status": "error", "mensaje": f"Authentik: {inv.status_code} — {inv.text}"}), 500
         inv.raise_for_status()
-    except requests.RequestException:
-        return jsonify({"status": "error", "mensaje": "Error al crear la invitación en Authentik"}), 500
+    except requests.RequestException as e:
+        return jsonify({"status": "error", "mensaje": f"Error de conexión: {e}"}), 500
 
     dominio = os.environ.get("DOMINIO", "")
     inv_pk  = inv.json()["pk"]
