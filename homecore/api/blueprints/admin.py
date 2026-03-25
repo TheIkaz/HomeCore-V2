@@ -1,4 +1,5 @@
 import os
+import psutil
 import requests
 from flask import Blueprint, jsonify, request
 from ..utils.auth import es_admin
@@ -98,3 +99,40 @@ def invitar():
         return jsonify({"status": "error", "mensaje": f"Error asignando contraseña: {e}"}), 500
 
     return jsonify({"status": "ok"})
+
+
+@admin_bp.route("/sistema", methods=["GET"])
+@_solo_admin
+def sistema():
+    cpu = psutil.cpu_percent(interval=0.5)
+
+    ram = psutil.virtual_memory()
+
+    disco = psutil.disk_usage("/")
+
+    temp = None
+    try:
+        temps = psutil.sensors_temperatures()
+        if temps:
+            for entries in temps.values():
+                if entries:
+                    temp = round(entries[0].current, 1)
+                    break
+    except AttributeError:
+        pass
+
+    return jsonify({
+        "status": "ok",
+        "cpu": cpu,
+        "ram": {
+            "usado":      round(ram.used    / 1024 ** 3, 2),
+            "total":      round(ram.total   / 1024 ** 3, 2),
+            "porcentaje": ram.percent,
+        },
+        "disco": {
+            "usado":      round(disco.used  / 1024 ** 3, 1),
+            "total":      round(disco.total / 1024 ** 3, 1),
+            "porcentaje": disco.percent,
+        },
+        "temperatura": temp,
+    })

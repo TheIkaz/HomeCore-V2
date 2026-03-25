@@ -65,6 +65,7 @@ def _seed_apps():
         ("filebrowser",  "Archivos",      "https://files.theikaz.com",        "FolderOpen", "familia"),
         ("jellyfin",     "Media",         "https://media.theikaz.com/sso/OID/start/authentik", "Play", "familia"),
         ("micuenta",     "Mi cuenta",     "https://auth.theikaz.com/if/user/","User",       "familia"),
+        ("sistema",      "Estado Raspberry","/admin/sistema",                   "Activity",   "admin"),
         ("authentik",    "Administración","https://auth.theikaz.com/if/admin/","Shield",     "admin"),
         ("invitar",      "Invitar usuario","/admin/invitar",                   "UserPlus",   "admin"),
     ]
