@@ -152,8 +152,9 @@
 }
 .btnPrimario:hover { background: var(--color-accent-hover); }
 
-.errorMsg { color: var(--color-danger); font-size: 0.875rem; }
-.vacio    { color: var(--color-muted); }
+.errorMsg  { color: var(--color-danger); font-size: 0.875rem; }
+.vacio     { color: var(--color-muted); }
+.cargando  { color: var(--color-muted); }
 
 /* Botón Volver */
 .btnVolver {

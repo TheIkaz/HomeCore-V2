@@ -2,18 +2,22 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getProductos, modificarProducto, eliminarProducto } from "../../api/inventario";
 import ProductoForm from "./ProductoForm";
+import ConfirmDialog from "../../components/ConfirmDialog";
 import styles from "./Inventario.module.css";
 
 export default function InventarioLista() {
   const navigate = useNavigate();
-  const [productos, setProductos] = useState([]);
-  const [editando, setEditando]   = useState(null);
-  const [error, setError]         = useState(null);
+  const [productos, setProductos]   = useState([]);
+  const [editando, setEditando]     = useState(null);
+  const [error, setError]           = useState(null);
+  const [cargando, setCargando]     = useState(true);
+  const [confirmar, setConfirmar]   = useState(null);
 
   const cargar = () =>
     getProductos()
       .then((d) => setProductos(d.datos))
-      .catch(() => setError("Error al cargar el inventario"));
+      .catch(() => setError("Error al cargar el inventario"))
+      .finally(() => setCargando(false));
 
   useEffect(() => { cargar(); }, []);
 
@@ -23,14 +27,24 @@ export default function InventarioLista() {
   const ajustarCantidad = (p, delta) =>
     modificarProducto(p.id, { cantidad: Math.max(0, p.cantidad + delta) }).then(cargar);
 
-  const eliminar = (id) => {
-    if (confirm("¿Eliminar este producto?")) eliminarProducto(id).then(cargar);
+  const eliminar = (id) => setConfirmar(id);
+  const confirmarEliminar = () => {
+    eliminarProducto(confirmar).then(cargar);
+    setConfirmar(null);
   };
 
-  if (error) return <p className={styles.errorMsg}>{error}</p>;
+  if (cargando) return <p className={styles.cargando}>Cargando...</p>;
+  if (error)    return <p className={styles.errorMsg}>{error}</p>;
 
   return (
     <div>
+      {confirmar && (
+        <ConfirmDialog
+          mensaje="¿Eliminar este producto?"
+          onConfirmar={confirmarEliminar}
+          onCancelar={() => setConfirmar(null)}
+        />
+      )}
       <button className={styles.btnVolver} onClick={() => navigate("/inventario")}>← Volver</button>
       <div className={styles.header}>
         <h1 className={styles.titulo}>Inventario</h1>

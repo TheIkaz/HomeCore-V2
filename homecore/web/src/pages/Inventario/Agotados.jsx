@@ -6,9 +6,16 @@ import styles from "./Inventario.module.css";
 export default function Agotados() {
   const navigate = useNavigate();
   const [productos, setProductos] = useState([]);
+  const [cargando, setCargando]   = useState(true);
 
-  const cargar = () => getAgotados().then((d) => setProductos(d.datos));
+  const cargar = () =>
+    getAgotados()
+      .then((d) => setProductos(d.datos))
+      .finally(() => setCargando(false));
+
   useEffect(() => { cargar(); }, []);
+
+  if (cargando) return <p className={styles.cargando}>Cargando...</p>;
 
   const toggleLista = (p) =>
     modificarProducto(p.id, { en_lista_compra: !p.en_lista_compra }).then(cargar);

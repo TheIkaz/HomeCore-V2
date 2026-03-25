@@ -42,3 +42,8 @@
   color: var(--color-danger);
   padding: 1rem;
 }
+
+.cargando {
+  color: var(--color-muted);
+  padding: 1rem;
+}

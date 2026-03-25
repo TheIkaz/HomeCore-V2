@@ -5,9 +5,10 @@ import { getApps } from "../api/apps";
 import styles from "./Dashboard.module.css";
 
 export default function Dashboard() {
-  const [apps, setApps]       = useState([]);
-  const [usuario, setUsuario] = useState("");
-  const [error, setError]     = useState(null);
+  const [apps, setApps]         = useState([]);
+  const [usuario, setUsuario]   = useState("");
+  const [error, setError]       = useState(null);
+  const [cargando, setCargando] = useState(true);
 
   useEffect(() => {
     getApps()
@@ -15,10 +16,12 @@ export default function Dashboard() {
         setApps(data.datos);
         setUsuario(data.usuario);
       })
-      .catch(() => setError("No se pudieron cargar las aplicaciones"));
+      .catch(() => setError("No se pudieron cargar las aplicaciones"))
+      .finally(() => setCargando(false));
   }, []);
 
-  if (error) return <p className={styles.error}>{error}</p>;
+  if (cargando) return <p className={styles.cargando}>Cargando...</p>;
+  if (error)    return <p className={styles.error}>{error}</p>;
 
   return (
     <div>

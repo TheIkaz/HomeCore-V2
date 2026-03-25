@@ -9,13 +9,17 @@ export default function ListaCompra() {
   const [todosProductos, setTodosProductos] = useState([]);
   const [cantidades, setCantidades]         = useState({});
   const [mostrarPanel, setMostrarPanel]     = useState(false);
+  const [cargando, setCargando]             = useState(true);
 
-  const cargar = () => Promise.all([
-    getListaCompra().then((d) => setProductos(d.datos)),
-    getProductos().then((d) => setTodosProductos(d.datos)),
-  ]);
+  const cargar = () =>
+    Promise.all([
+      getListaCompra().then((d) => setProductos(d.datos)),
+      getProductos().then((d) => setTodosProductos(d.datos)),
+    ]).finally(() => setCargando(false));
 
   useEffect(() => { cargar(); }, []);
+
+  if (cargando) return <p className={styles.cargando}>Cargando...</p>;
 
   const setCantidad = (id, val) =>
     setCantidades((prev) => ({ ...prev, [id]: val }));
