@@ -69,25 +69,17 @@ Repo: https://github.com/TheIkaz/HomeCore-V2
 
 ### Fase 3 — Servicios de contenido
 
-Añadir al `docker-compose.yml`:
-- **Filebrowser** — explorador de ficheros web. Monta `/filebrowser/data/` que contiene subcarpetas `media/` y `documentos/`. Autenticación via forward auth (igual que HomeCore, sin OIDC).
+Servicios añadidos al `docker-compose.yml`:
+- **Filebrowser** — explorador de ficheros web. Subir, descargar y organizar ficheros en el SSD desde el navegador. Forward auth de Authentik (sin login propio).
 - **Jellyfin** — streaming de media. Monta la carpeta `media/` de Filebrowser como biblioteca de solo lectura.
-- **Paperless-ngx** + Redis propio — gestión documental con OCR. Monta la carpeta `documentos/` de Filebrowser como bandeja de entrada.
 
-Flujo de uso previsto:
+Flujo de uso:
 1. El usuario sube archivos a `files.theikaz.com` (Filebrowser)
 2. Jellyfin detecta automáticamente los nuevos archivos en su biblioteca
-3. Paperless procesa los documentos de la carpeta de entrada con OCR
-
-Descomentar en el `Caddyfile`:
-- `files.theikaz.com` → Filebrowser (con forward auth)
-- `media.theikaz.com` → Jellyfin (con forward auth)
-- `docs.theikaz.com` → Paperless (OIDC nativo)
 
 SSO:
-- Filebrowser: forward auth de Caddy (sin configuración adicional)
-- Jellyfin: plugin SSO instalable desde la UI tras el despliegue
-- Paperless: OIDC nativo via variables de entorno
+- Filebrowser: forward auth de Caddy ✅
+- Jellyfin: plugin SSO instalable desde la UI (pendiente)
 
 ### Fase 4 — Estabilidad y backups
 - `scripts/backup.sh` — Restic + Rclone
@@ -112,7 +104,6 @@ SSO:
 | `homecore.theikaz.com` | HomeCore dashboard | ✅ Operativo |
 | `files.theikaz.com` | Filebrowser | Pendiente despliegue — Fase 3 |
 | `media.theikaz.com` | Jellyfin | Pendiente despliegue — Fase 3 |
-| `docs.theikaz.com` | Paperless-ngx | Pendiente despliegue — Fase 3 |
 
 ---
 

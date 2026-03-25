@@ -15,7 +15,6 @@ Centraliza el acceso a aplicaciones y servicios del hogar bajo un único punto d
 | Hub / dashboard | HomeCore — Flask + React |
 | Archivos | Filebrowser |
 | Streaming | Jellyfin |
-| Documentos | Paperless-ngx |
 | Backups | Restic + Rclone |
 
 ## Estructura del repositorio

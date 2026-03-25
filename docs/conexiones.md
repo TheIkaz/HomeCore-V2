@@ -73,7 +73,6 @@ Todos los subdominios protegidos incluyen `import autenticacion`. El subdominio 
 | `homecore.theikaz.com` | `homecore:5000` | Sí |
 | `files.theikaz.com` | `filebrowser:80` | Sí (forward auth igual que HomeCore) — Fase 3 |
 | `media.theikaz.com` | `jellyfin:8096` | No — clientes nativos (TV, móvil) necesitan auth propia de Jellyfin |
-| `docs.theikaz.com` | `paperless:8000` | Sí — Paperless lee `X-Authentik-Username` y autentica al usuario automáticamente |
 
 ---
 

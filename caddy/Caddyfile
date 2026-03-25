@@ -67,14 +67,3 @@ http://media.{$DOMINIO} {
 }
 
 
-# ── Paperless-ngx — gestión documental ───────────────────────────
-# Forward auth de Authentik. Paperless lee X-Authentik-Username para identificar
-# al usuario automáticamente — sin pantalla de login propia.
-http://docs.{$DOMINIO} {
-    # Los ficheros estáticos no pasan por forward auth (evita errores CORS en recursos del navegador)
-    route /static/* {
-        reverse_proxy paperless:8000
-    }
-    import autenticacion
-    reverse_proxy paperless:8000
-}

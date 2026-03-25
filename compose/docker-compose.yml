@@ -212,56 +212,6 @@ services:
     networks:
       - homecore
 
-  # ─────────────────────────────────────────
-  # Redis para Paperless-ngx (cola de tareas)
-  # Separado del Redis de Authentik para evitar conflictos.
-  # ─────────────────────────────────────────
-  paperless-redis:
-    image: redis:7-alpine
-    restart: unless-stopped
-    container_name: homecore-paperless-redis
-    volumes:
-      - ../paperless/redis:/data
-    networks:
-      - homecore
-    healthcheck:
-      test: ["CMD-SHELL", "redis-cli ping | grep PONG"]
-      interval: 30s
-      timeout: 3s
-      retries: 5
-
-  # ─────────────────────────────────────────
-  # Paperless-ngx — gestión documental con OCR
-  # Accesible en docs.theikaz.com
-  # Consume documentos de la carpeta de Filebrowser automáticamente.
-  # OIDC con Authentik se configura por variables de entorno (ver docs/conexiones.md).
-  # ─────────────────────────────────────────
-  paperless:
-    image: ghcr.io/paperless-ngx/paperless-ngx:latest
-    restart: unless-stopped
-    container_name: homecore-paperless
-    environment:
-      PAPERLESS_REDIS: redis://paperless-redis:6379
-      PAPERLESS_SECRET_KEY: ${PAPERLESS_SECRET_KEY}
-      PAPERLESS_TIME_ZONE: Europe/Madrid
-      PAPERLESS_OCR_LANGUAGE: spa+eng
-      PAPERLESS_URL: https://docs.${DOMINIO}
-      PAPERLESS_ADMIN_USER: ${PAPERLESS_ADMIN_USER}
-      PAPERLESS_ADMIN_PASSWORD: ${PAPERLESS_ADMIN_PASSWORD}
-      # Autenticación por cabecera — Caddy inyecta X-Authentik-Username tras validar con Authentik.
-      # El usuario se crea automáticamente en Paperless si no existe.
-      PAPERLESS_ENABLE_HTTP_REMOTE_USER: "true"
-      PAPERLESS_HTTP_REMOTE_USER_HEADER_NAME: HTTP_X_AUTHENTIK_USERNAME
-    volumes:
-      - ../paperless/data:/usr/src/paperless/data
-      - ../paperless/media:/usr/src/paperless/media
-      - ../paperless/export:/usr/src/paperless/export
-      - ../filebrowser/data/documentos:/usr/src/paperless/consume
-    depends_on:
-      paperless-redis:
-        condition: service_healthy
-    networks:
-      - homecore
 
 networks:
   homecore:
