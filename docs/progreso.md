@@ -142,9 +142,14 @@ Página `/admin/sistema` visible solo para admin con:
 - Sparklines SVG con historial de los últimos 2 minutos
 - Polling cada 5 segundos con `psutil` en el backend
 
-### Fase 10 — Documento técnico de arquitectura detallado
+### ~~Fase 10 — Documento técnico de arquitectura detallado~~ ✅ — 25 marzo 2026
 
-Documento orientado a alguien con conocimiento técnico que quiera entender el sistema en profundidad: cómo se integran todos los componentes, decisiones de diseño, flujos de autenticación con diagramas, cómo añadir nuevos servicios, cómo funciona el forward auth vs OIDC, estructura del código de HomeCore, etc. Más técnico y detallado que el `arquitectura.md` actual.
+`docs/arquitectura_tecnica.md` — 1061 líneas, 14 secciones con diagramas Mermaid:
+- Flujos de petición, forward auth, OIDC, backup y service worker
+- Arquitectura interna Flask + React con blueprints y rutas
+- Schema de base de datos SQLite
+- Mapa de volúmenes SSD → contenedores
+- Guía paso a paso para añadir nuevos servicios
 
 ---
 
