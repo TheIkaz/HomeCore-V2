@@ -98,10 +98,9 @@ SSO:
 - **Diagnóstico:** sesión confirmada activa (`auth.theikaz.com/if/user/` carga sin login). Authorization flow del provider OIDC es correcto (`default-provider-authorization-implicit-consent`). Causa pendiente de identificar.
 - **Resultado esperado:** clic en Media → Jellyfin carga directamente sin pedir credenciales.
 
-#### 5.2 HomeCore como único punto de entrada
-- **Problema:** Authentik tiene su propio portal de usuario (`auth.theikaz.com/if/user/`) que también lista apps. Genera confusión — hay dos "dashboards".
-- **Solución:** configurar en Authentik que tras el login redirija siempre a HomeCore en vez de mostrar su portal. Los usuarios normales nunca deberían ver el portal de Authentik.
-- **Cómo:** en Authentik → System → Brands → establecer "Default application" a HomeCore.
+#### ~~5.2 HomeCore como único punto de entrada~~ ✅
+- Configurado en Authentik → System → Brands → Default application → HomeCore.
+- Tras el login, Authentik redirige directamente a HomeCore sin mostrar su portal de usuario.
 
 #### 5.3 Estados de carga en React
 - **Problema:** los componentes muestran pantalla vacía mientras esperan la API. Da sensación de pantalla rota.

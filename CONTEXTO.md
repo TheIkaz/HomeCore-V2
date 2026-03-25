@@ -41,7 +41,7 @@ Lee en este orden antes de hacer nada.
 ## 3. Próximo trabajo — Fase 5 (experiencia de usuario)
 
 1. **Bug Jellyfin SSO** — al entrar desde HomeCore pide login aunque la sesión está activa. Sesión confirmada OK, authorization flow correcto. Causa pendiente.
-2. **HomeCore como único punto de entrada** — configurar en Authentik "Default application" → HomeCore para que el portal de Authentik no sea visible para usuarios normales.
+2. ~~**HomeCore como único punto de entrada**~~ ✅ — configurado en Authentik → System → Brands → Default application.
 3. **Estados de carga en React** — spinner en Dashboard, InventarioLista, Agotados y ListaCompra.
 4. **Modal de confirmación propio** — reemplazar `confirm()` nativo por componente React.
 
