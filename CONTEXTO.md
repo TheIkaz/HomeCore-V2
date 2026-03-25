@@ -38,13 +38,16 @@ Lee en este orden antes de hacer nada.
 
 ---
 
-## 3. Próximo trabajo — Fase 5 (experiencia de usuario)
+## 3. Estado — todas las fases completadas ✅
 
-1. **Bug Jellyfin SSO** — al entrar desde HomeCore pide login aunque la sesión está activa. Sesión confirmada OK, authorization flow correcto. Causa pendiente.
-2. ~~**HomeCore como único punto de entrada**~~ ✅ — configurado en Authentik → System → Brands → Default application.
-3. **Acceso rápido a Authentik** — añadir app al catálogo visible solo para `admin` → `auth.theikaz.com/if/admin/`.
-4. **Estados de carga en React** — spinner en Dashboard, InventarioLista, Agotados y ListaCompra.
-5. **Modal de confirmación propio** — reemplazar `confirm()` nativo por componente React.
+**Fase 5 completada (25 marzo 2026):**
+- SSO Jellyfin funcionando correctamente con sesión activa
+- HomeCore configurado como único punto de entrada (Authentik → Brands → Default application)
+- App "Administración" visible solo para admin → `auth.theikaz.com/if/admin/`
+- Estados de carga en todos los componentes React
+- Modal de confirmación propio (reemplaza `confirm()` nativo)
+
+**Pendiente manual:** crear usuarios adicionales en Authentik para la familia.
 
 ---
 

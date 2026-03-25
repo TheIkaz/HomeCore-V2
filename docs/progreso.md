@@ -93,26 +93,20 @@ SSO:
 
 **Objetivo:** que el sistema sea cómodo y natural para cualquier miembro de la familia, sin fricciones de login ni confusión sobre qué pantalla usar como punto de entrada.
 
-#### 5.1 Sesión unificada Jellyfin (bug)
-- **Problema:** al entrar en HomeCore y pulsar "Media", Jellyfin vuelve a pedir login en Authentik aunque la sesión ya está activa.
-- **Diagnóstico:** sesión confirmada activa (`auth.theikaz.com/if/user/` carga sin login). Authorization flow del provider OIDC es correcto (`default-provider-authorization-implicit-consent`). Causa pendiente de identificar.
-- **Resultado esperado:** clic en Media → Jellyfin carga directamente sin pedir credenciales.
+#### ~~5.1 Sesión unificada Jellyfin~~ ✅
+- No era un bug. La primera prueba se hizo sin sesión activa. Con sesión activa el flujo SSO funciona correctamente.
 
 #### ~~5.2 HomeCore como único punto de entrada~~ ✅
 - Configurado en Authentik → System → Brands → Default application → HomeCore.
-- Tras el login, Authentik redirige directamente a HomeCore sin mostrar su portal de usuario.
 
-#### 5.3 Acceso rápido a Authentik desde HomeCore (solo admin)
-- Añadir app al catálogo con `grupos_requeridos=admin` que enlace a `https://auth.theikaz.com/if/admin/`.
-- Los usuarios del grupo `familia` no la verán. Solo el administrador.
+#### ~~5.3 Acceso rápido a Authentik desde HomeCore (solo admin)~~ ✅
+- App "Administración" añadida al catálogo con `grupos_requeridos=admin` → `auth.theikaz.com/if/admin/`.
 
-#### 5.5 Estados de carga en React
-- **Problema:** los componentes muestran pantalla vacía mientras esperan la API. Da sensación de pantalla rota.
-- **Solución:** añadir spinner o skeleton en Dashboard, InventarioLista, Agotados y ListaCompra.
+#### ~~5.5 Estados de carga en React~~ ✅
+- Añadido estado "Cargando..." en Dashboard, InventarioLista, Agotados y ListaCompra.
 
-#### 5.6 Diálogos de confirmación propios
-- **Problema:** `confirm()` nativo del navegador bloqueado en algunos contextos y con aspecto anticuado.
-- **Solución:** reemplazar por un modal de confirmación propio (componente React reutilizable).
+#### ~~5.6 Diálogos de confirmación propios~~ ✅
+- Componente `ConfirmDialog` reutilizable. Sustituye `confirm()` nativo en InventarioLista.
 
 ### Pendiente fuera del código
 - ~~Registrar dominio `theikaz.com` en Cloudflare~~ ✅
