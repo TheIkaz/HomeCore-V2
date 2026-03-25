@@ -127,9 +127,13 @@ Sin cambios de código. Los nuevos logins duran 30 días.
 
 Polling cada 10 segundos en `ListaCompra.jsx` con `setInterval` + limpieza en el unmount. Sin cambios en el backend.
 
-### Fase 8 — App móvil / PWA
+### ~~Fase 8 — App móvil / PWA~~ ✅ — 25 marzo 2026
 
-HomeCore ya es responsive pero no es instalable como app. Añadir un `manifest.json` y un service worker básico la convertiría en una PWA instalable directamente desde el navegador del móvil, sin pasar por ninguna tienda de aplicaciones.
+- `public/manifest.json` — nombre, colores, display standalone
+- `public/sw.js` — service worker con cache-first para estáticos, network-first para `/api/`
+- `public/icon.svg` + `generate-icons.js` — icono SVG convertido a PNG (192 y 512px) con `sharp` en el prebuild
+- Registrado en `main.jsx` e inyectado en `index.html`
+- Instalable desde Chrome (Android) y Safari (iOS) con "Añadir a pantalla de inicio"
 
 ### Fase 9 — Monitorización de la Pi (solo admin)
 
