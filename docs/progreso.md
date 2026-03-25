@@ -153,6 +153,19 @@ Página `/admin/sistema` visible solo para admin con:
 
 ---
 
+### ~~Calendario familiar~~ ✅ — 25 marzo 2026
+
+Módulo de calendario compartido visible para todos los usuarios del grupo `familia`:
+- Vista mensual con puntos de color por evento
+- Panel de eventos al pulsar un día
+- Formulario para crear eventos (título, fecha, hora opcional, descripción, categoría)
+- Categorías con color personalizable. Seed: Médico, Ocio, Trabajo, Cumpleaños, Otros
+- Nuevas categorías creables dinámicamente desde la app
+- Cualquier miembro puede crear y eliminar eventos
+- Auto-refresco cada 30 segundos
+
+---
+
 ## Ideas de futuras aplicaciones en HomeCore
 
 Módulos que podrían añadirse como tiles al dashboard en el futuro:
@@ -162,7 +175,7 @@ Módulos que podrían añadirse como tiles al dashboard en el futuro:
 | **Gastos domésticos** | Registrar gastos del hogar, categorías, histórico mensual y presupuesto. Extensión natural del módulo de inventario. |
 | **Recetas / menú semanal** | Planificador de menús que al confirmar el menú de la semana añada automáticamente los ingredientes que falten a la lista de la compra. |
 | **Tareas del hogar** | Lista de tareas compartida con asignación por persona y recordatorios. |
-| **Calendario familiar** | Eventos compartidos visibles por todos los miembros. Podría integrarse con un servidor CalDAV propio (p. ej. Radicale). |
+| ~~**Calendario familiar**~~ | ✅ Completado |
 | **Panel de descargas** | Interfaz para gestionar descargas (p. ej. integración con qBittorrent) directamente desde HomeCore. |
 | **Fotos familiares** | Galería privada de fotos accesible desde cualquier dispositivo. Podría integrarse con Immich (alternativa self-hosted a Google Fotos). |
 | **Notificaciones de stock** | Aviso automático (push o email vía Ntfy) cuando un producto del inventario llega al umbral de agotado. |
