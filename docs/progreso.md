@@ -1,6 +1,6 @@
 # HomeCore V2 — Estado del proyecto
 
-**Última actualización: 29 marzo 2026 (noche)**
+**Última actualización: 30 marzo 2026**
 Repo: https://github.com/TheIkaz/HomeCore-V2
 
 ---
@@ -179,11 +179,8 @@ Módulo de calendario compartido visible para todos los usuarios del grupo `fami
 ~~5. **Filtrado por categoría**~~ ✅ — selector desplegable, productos agrupados visualmente por categoría.
 ~~6. **Selector de categoría en formulario**~~ ✅ — `ProductoForm` muestra las categorías existentes en un desplegable; opción "Nueva categoría" para crearla al vuelo.
 
-1. **Añadir artículos nuevos desde la lista de la compra** — si se compra algo que no estaba en el inventario, poder darlo de alta directamente desde la pantalla de lista de la compra.
-2. **Flujo de compra completada:**
-   - Cada elemento de la lista de la compra tiene un tick para marcarlo como "metido en el carro".
-   - Al final de la lista, botón **"Compra hecha"**.
-   - Al pulsar: los artículos marcados se vuelcan al inventario (se suma la cantidad comprada) y se eliminan de la lista de la compra. Los no marcados permanecen en la lista.
+~~1. **Añadir artículos nuevos desde la lista de la compra**~~ ✅ — botón "Crear artículo nuevo" en el panel, crea el producto con cantidad 0 y lo añade directamente a la lista.
+~~2. **Flujo de compra completada**~~ ✅ — checkbox + cantidad por artículo; botón "Terminar compra" suma cantidades al inventario y elimina los marcados; los no marcados permanecen.
 
 ---
 
