@@ -137,25 +137,105 @@
 .btnEliminar:hover     { border-color: var(--color-danger) !important; color: var(--color-danger) !important; }
 
 /* Lista de la compra */
-.listaCompra { list-style: none; display: flex; flex-direction: column; gap: 0.5rem; }
+.listaCompra { list-style: none; display: flex; flex-direction: column; gap: 0.4rem; }
+
+.itemCompraHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.3rem 0.5rem;
+}
 
 .itemCompra {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: 0.75rem;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius);
   padding: 0.75rem 1rem;
+  transition: border-color 0.15s, background 0.15s;
 }
 
-.btnComprado {
-  background: var(--color-success);
+.itemMarcado {
+  border-color: var(--color-accent);
+  background: color-mix(in srgb, var(--color-accent) 8%, var(--color-surface));
+}
+
+.check {
+  width: 1.1rem;
+  height: 1.1rem;
+  accent-color: var(--color-accent);
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.btnCompraHecha {
+  width: 100%;
+  margin-top: 1rem;
+  background: var(--color-accent);
   color: #fff;
   border: none;
-  padding: 0.35rem 0.75rem;
+  padding: 0.65rem 1rem;
+  border-radius: 0.5rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, opacity 0.15s;
+}
+.btnCompraHecha:hover:not(:disabled) { background: var(--color-accent-hover); }
+.btnCompraHecha:disabled { opacity: 0.4; cursor: default; }
+
+/* Formulario nuevo artículo dentro del panel */
+.btnNuevoEnLista {
+  margin-top: 0.5rem;
+  background: none;
+  border: 1px dashed var(--color-border);
+  color: var(--color-muted);
+  padding: 0.4rem 0.75rem;
   border-radius: 0.375rem;
   font-size: 0.85rem;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+}
+.btnNuevoEnLista:hover { border-color: var(--color-accent); color: var(--color-text); }
+
+.formNuevoEnLista {
+  margin-top: 0.5rem;
+  border-top: 1px solid var(--color-border);
+  padding-top: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.formNuevoEnLista input,
+.formNuevoEnLista select {
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 0.375rem;
+  color: var(--color-text);
+  padding: 0.4rem 0.75rem;
+  font-size: 0.875rem;
+}
+.formNuevoEnLista input:focus,
+.formNuevoEnLista select:focus { outline: none; border-color: var(--color-accent); }
+
+.formNuevoTitulo { font-size: 0.85rem; font-weight: 600; color: var(--color-muted); }
+
+.formNuevoAcciones {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+}
+.formNuevoAcciones button:last-child {
+  background: none;
+  border: 1px solid var(--color-border);
+  color: var(--color-muted);
+  padding: 0.4rem 0.75rem;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  cursor: pointer;
 }
 
 /* Formulario */
