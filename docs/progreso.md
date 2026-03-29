@@ -184,20 +184,30 @@ Módulo de calendario compartido visible para todos los usuarios del grupo `fami
 
 ---
 
-## Ideas de futuras aplicaciones en HomeCore
+## Roadmap de nuevas aplicaciones
 
-Módulos que podrían añadirse como tiles al dashboard en el futuro:
+### En cartera (decidido)
 
-| Aplicación | Descripción |
+| Módulo | Prioridad | Notas |
+|---|---|---|
+| **Gestor de contraseñas** | Fase 12 | Integración con Vaultwarden (Bitwarden self-hosted) como tile de acceso rápido. |
+| **Gastos domésticos** | Por definir | Registrar gastos del hogar con categorías e histórico. Pendiente decidir formato de entrada y si incluye dashboard/gráficas. |
+| **Menú semanal** | Por definir | Planificador de menús semanales. Sin integración con lista de la compra por ahora. Explorar generación asistida por IA (gustos, restricciones dietéticas, variedad). Posible uso de API de Claude. |
+| **Tareas del hogar** | Por definir | Lista de tareas compartida: descripción, responsable y estado. Sin notificaciones por ahora. |
+
+### En reserva (idea anotada, sin fecha)
+
+| Módulo | Notas |
 |---|---|
-| **Gastos domésticos** | Registrar gastos del hogar, categorías, histórico mensual y presupuesto. Extensión natural del módulo de inventario. |
-| **Recetas / menú semanal** | Planificador de menús que al confirmar el menú de la semana añada automáticamente los ingredientes que falten a la lista de la compra. |
-| **Tareas del hogar** | Lista de tareas compartida con asignación por persona y recordatorios. |
-| ~~**Calendario familiar**~~ | ✅ Completado |
-| **Panel de descargas** | Interfaz para gestionar descargas (p. ej. integración con qBittorrent) directamente desde HomeCore. |
-| **Fotos familiares** | Galería privada de fotos accesible desde cualquier dispositivo. Podría integrarse con Immich (alternativa self-hosted a Google Fotos). |
-| **Notificaciones de stock** | Aviso automático (push o email vía Ntfy) cuando un producto del inventario llega al umbral de agotado. |
-| **Gestor de contraseñas** | Integración con Vaultwarden (Bitwarden self-hosted) como tile de acceso rápido. |
+| **Fotos familiares** | Galería privada. Posible integración con Immich. Sin fecha. |
+| **Notificaciones de stock** | Aviso por push o email (Ntfy) al llegar al umbral de agotado. Sin fecha. |
+
+### Descartado
+
+| Módulo | Motivo |
+|---|---|
+| ~~**Recetas**~~ | Descartado. |
+| ~~**Panel de descargas**~~ | Innecesario. |
 
 ---
 
