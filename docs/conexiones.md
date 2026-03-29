@@ -280,6 +280,16 @@ docker compose -f /srv/homecore/homecore/compose/docker-compose.yml \
 - Causa más probable: `CLOUDFLARE_TUNNEL_TOKEN` vacío en el `.env`
 - Verificar: `docker logs homecore-cloudflared`
 
+### Authentik en crash loop: "Secret key missing"
+- **Síntoma:** `homecore-authentik-server` al 100%+ de CPU, logs repiten `Secret key missing, gunicorn process died, restarting`
+- **Causa:** el contenedor se levantó sin las variables de entorno del `.env` (comando incorrecto)
+- **Solución:** relanzar con `--env-file`:
+```bash
+docker compose -f /srv/homecore/homecore/compose/docker-compose.yml \
+  --env-file /srv/homecore/compose/.env up -d
+```
+- **Por qué ocurre:** el `.env` está en `/srv/homecore/compose/` y el `docker-compose.yml` en `/srv/homecore/homecore/compose/`. Docker Compose no los encuentra en el mismo directorio, por lo que hay que pasarlo explícitamente con `--env-file`.
+
 ### Authentik devuelve 404 en `/outpost.goauthentik.io/auth/caddy`
 - El embedded outpost no tiene providers asignados o aún está inicializando
 - Esperar 30 segundos tras el arranque y reintentar
@@ -293,4 +303,43 @@ u = User.objects.get(username='akadmin')
 u.set_password('nueva_contraseña')
 u.save()
 "
+```
+
+---
+
+## 11. Operaciones frecuentes
+
+> **IMPORTANTE:** Todos los comandos de Docker Compose para este proyecto **deben incluir `--env-file /srv/homecore/compose/.env`**. Sin él, Authentik arranca sin secretos y entra en crash loop.
+
+### Desplegar cambios de HomeCore (lo más habitual)
+
+```bash
+cd /srv/homecore/homecore && git pull
+docker compose -f /srv/homecore/homecore/compose/docker-compose.yml \
+  --env-file /srv/homecore/compose/.env \
+  up -d --build homecore
+```
+
+### Levantar todo el stack (primer arranque o tras reinicio de la Pi)
+
+```bash
+docker compose -f /srv/homecore/homecore/compose/docker-compose.yml \
+  --env-file /srv/homecore/compose/.env \
+  up -d
+```
+
+### Reiniciar un servicio concreto
+
+```bash
+docker compose -f /srv/homecore/homecore/compose/docker-compose.yml \
+  --env-file /srv/homecore/compose/.env \
+  restart <nombre-servicio>
+# Ejemplos: homecore, authentik-server, caddy, jellyfin
+```
+
+### Ver logs de un servicio
+
+```bash
+docker logs homecore-<servicio> --tail 50
+# Ejemplos: homecore-app, homecore-authentik-server, homecore-caddy
 ```
