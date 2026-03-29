@@ -1,6 +1,6 @@
 # HomeCore V2 — Estado del proyecto
 
-**Última actualización: 25 marzo 2026**
+**Última actualización: 28 marzo 2026**
 Repo: https://github.com/TheIkaz/HomeCore-V2
 
 ---
@@ -208,30 +208,30 @@ Módulos que podrían añadirse como tiles al dashboard en el futuro:
 | `auth.theikaz.com` | Authentik | ✅ Operativo |
 | `homecore.theikaz.com` | HomeCore dashboard | ✅ Operativo |
 | `files.theikaz.com` | Filebrowser | ✅ Operativo |
-| `media.theikaz.com` | Jellyfin | ⚠️ Pendiente (ver incidencia abajo) |
+| `media.theikaz.com` | Jellyfin | ✅ Operativo |
 
 ---
 
-## Incidencia abierta — Jellyfin admin (25 marzo 2026)
+## ~~Incidencia cerrada — Jellyfin admin (resuelta 28 marzo 2026)~~
 
-**Problema:** No se podía acceder al panel de administración de Jellyfin para añadir la biblioteca de medios. El usuario SSO (`Ander`) no tiene permisos de admin en Jellyfin. El usuario admin local (`akadmin`) tenía contraseña desconocida y el reset por PIN no funcionó.
+**Problema original:** Usuario SSO sin permisos de admin en Jellyfin. `jellyfin.db` borrado. `system.xml` presente → asistente inicial no aparecía.
 
-**Acciones realizadas:**
-- Se intentó reset de contraseña por PIN — el PIN era aceptado pero el login fallaba
-- Se borró `jellyfin.db` para forzar el asistente inicial
-- Se levantó contenedor temporal con puerto 8096 expuesto: `docker run --rm -d --name jellyfin-setup --network homecore -v /srv/homecore/homecore/jellyfin/config:/config -v /srv/homecore/homecore/jellyfin/cache:/cache -v /srv/homecore/homecore/filebrowser/data/media:/media:ro -p 8096:8096 jellyfin/jellyfin:latest`
-- El asistente no apareció — Jellyfin pedía login directamente (posiblemente la config en `/config` indica que ya está inicializado)
+**Causa raíz:** El plugin SSO tenía `EnableAuthorization=true` con `AdminRoles` vacío, lo que sobreescribía los permisos de la BD y quitaba el rol de admin al usuario al entrar por SSO. Además, el `CanonicalLinks` del plugin tenía el GUID antiguo del usuario, causando conflicto al intentar crear un usuario ya existente.
 
-**Estado al pausar:**
-- El contenedor temporal `jellyfin-setup` puede estar corriendo en la Pi — pararlo con `docker stop jellyfin-setup`
-- El contenedor original `homecore-jellyfin` está parado
-- `jellyfin.db` fue borrado — no hay usuarios locales
-- El plugin SSO y la configuración de red están intactos
+**Solución aplicada (28 marzo 2026):**
+1. Borrado de `jellyfin.db` y `system.xml` para forzar el asistente inicial
+2. Contenedor temporal con puerto 8096 expuesto para acceder al asistente vía ZeroTier (`http://10.147.18.210:8096`)
+3. Creado usuario admin local `akadmin` en Jellyfin con contraseña propia (independiente de Authentik)
+4. Configurada biblioteca de medios apuntando a `/media` (compartida con Filebrowser)
+5. Obtenido nuevo GUID de `akadmin` desde `jellyfin.db` con Python3 y actualizado en `CanonicalLinks`
+6. Corregido `SSO-Auth.xml`: `EnableAuthorization=false`, `EnableAllFolders=true`, eliminada entrada duplicada con key vacío
 
-**Siguiente paso:**
-- Borrar también `/config/system.xml` o el archivo que indica que Jellyfin ya fue inicializado, para forzar el asistente
-- O crear el usuario admin directamente vía API sin autenticación (Jellyfin permite esto cuando no hay usuarios)
-- Arrancar el stack normal tras solucionar: `docker compose -f /srv/homecore/homecore/compose/docker-compose.yml --env-file /srv/homecore/compose/.env up -d`
+**Estado del plugin SSO (`SSO-Auth.xml`) tras la solución:**
+- `EnableAuthorization`: `false` — los permisos se leen de `jellyfin.db`, no del plugin
+- `EnableAllFolders`: `true` — todos los usuarios SSO ven todas las bibliotecas
+- `CanonicalLinks`: `akadmin` → GUID `19b8fc9a-f2f3-481f-9f6e-ed83737dc184`
+
+**Nota operacional:** `SSO-Auth.xml` es un fichero de configuración en tiempo de ejecución en la Pi, **no está en el repositorio Git**. Ruta: `/srv/homecore/homecore/jellyfin/config/plugins/configurations/SSO-Auth.xml`. Si se pierde, recrearlo con los valores del backup en `~/jellyfin-sso-backup/`.
 
 ---
 

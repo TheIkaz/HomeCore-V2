@@ -17,7 +17,7 @@ Lee en este orden antes de hacer nada.
 
 ---
 
-## 2. Estado actual (25 marzo 2026)
+## 2. Estado actual (28 marzo 2026)
 
 **Fases completadas:**
 - ✅ Fase 1 — Infraestructura base (Caddy + Authentik + Cloudflare Tunnel)
@@ -72,6 +72,9 @@ docker compose -f /srv/homecore/homecore/compose/docker-compose.yml --env-file /
 - URL de acceso directo: `https://media.theikaz.com/sso/OID/start/authentik`
 - El Authorization flow del provider OIDC debe ser `default-provider-authorization-implicit-consent`
 - La sesión de Authentik se comparte: iniciar sesión en HomeCore da acceso directo a Jellyfin sin login adicional
+- Admin local de Jellyfin: usuario `akadmin` con contraseña propia (independiente de Authentik) — usar para tareas de administración
+- `SSO-Auth.xml` **no está en Git** — vive en `/srv/homecore/homecore/jellyfin/config/plugins/configurations/SSO-Auth.xml`. Backup en `~/jellyfin-sso-backup/` en la Pi
+- Configuración crítica del plugin: `EnableAuthorization=false` (si se pone a `true` sin `AdminRoles` definido, el plugin quita el rol de admin al usuario al entrar por SSO)
 
 ### El `.env` nunca está en Git
 Vive en `/srv/homecore/compose/.env` en la Pi. Plantilla en `compose/docker-compose.example.env`.

@@ -70,6 +70,13 @@ def _crear_tablas():
     """)
     db.commit()
 
+    # Migración: añadir fecha_fin si no existe (eventos de varios días)
+    try:
+        db.execute("ALTER TABLE eventos_calendario ADD COLUMN fecha_fin TEXT")
+        db.commit()
+    except Exception:
+        pass  # Columna ya existe
+
 
 def _seed_categorias():
     """Inserta categorías iniciales si la tabla está vacía."""

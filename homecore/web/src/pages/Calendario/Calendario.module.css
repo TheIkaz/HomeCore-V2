@@ -138,6 +138,17 @@
 .eventoDesc   { font-size: 0.8rem; color: var(--color-muted); }
 .eventoMeta   { font-size: 0.75rem; color: var(--color-muted); }
 
+.btnEditar {
+  background: none;
+  border: none;
+  color: var(--color-muted);
+  cursor: pointer;
+  font-size: 0.85rem;
+  padding: 0.1rem 0.3rem;
+  border-radius: 0.25rem;
+}
+.btnEditar:hover { color: var(--color-accent); }
+
 .btnBorrar {
   background: none;
   border: none;
@@ -230,6 +241,12 @@
 .formEvento { display: flex; flex-direction: column; gap: 0.75rem; }
 
 .campo { display: flex; flex-direction: column; gap: 0.3rem; }
+
+.campoFila {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
 .campo label { font-size: 0.85rem; color: var(--color-muted); }
 .campo input, .campo textarea {
   background: var(--color-bg);

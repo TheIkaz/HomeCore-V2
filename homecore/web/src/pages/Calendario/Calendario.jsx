@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { getEventos, crearEvento, eliminarEvento, getCategorias, crearCategoria } from "../../api/calendario";
+import { getEventos, crearEvento, actualizarEvento, eliminarEvento, getCategorias, crearCategoria } from "../../api/calendario";
 import styles from "./Calendario.module.css";
 
 const DIAS_SEMANA = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
@@ -9,10 +9,17 @@ const MESES = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto"
 function diasDelMes(anio, mes) {
   const primero = new Date(anio, mes - 1, 1);
   const ultimo  = new Date(anio, mes, 0).getDate();
-  // lunes=0 ... domingo=6
   const offsetInicio = (primero.getDay() + 6) % 7;
   return { offsetInicio, totalDias: ultimo };
 }
+
+function formatoFecha(fechaStr) {
+  if (!fechaStr) return "";
+  const [y, m, d] = fechaStr.split("-");
+  return `${d}/${m}/${y}`;
+}
+
+const FORM_VACIO = { titulo: "", fecha: "", fecha_fin: "", hora: "", descripcion: "", categoria_id: "" };
 
 export default function Calendario() {
   const navigate  = useNavigate();
@@ -20,14 +27,15 @@ export default function Calendario() {
   const [mes, setMes]   = useState(hoy.getMonth() + 1);
   const [anio, setAnio] = useState(hoy.getFullYear());
 
-  const [eventos,     setEventos]     = useState([]);
-  const [categorias,  setCategorias]  = useState([]);
-  const [diaSelec,    setDiaSelec]    = useState(null);
-  const [mostrarForm, setMostrarForm] = useState(false);
-  const [mostrarCats, setMostrarCats] = useState(false);
-  const [error,       setError]       = useState(null);
+  const [eventos,      setEventos]      = useState([]);
+  const [categorias,   setCategorias]   = useState([]);
+  const [diaSelec,     setDiaSelec]     = useState(null);
+  const [mostrarForm,  setMostrarForm]  = useState(false);
+  const [mostrarCats,  setMostrarCats]  = useState(false);
+  const [eventoEditar, setEventoEditar] = useState(null);
+  const [error,        setError]        = useState(null);
 
-  const [form, setForm] = useState({ titulo: "", fecha: "", hora: "", descripcion: "", categoria_id: "" });
+  const [form,     setForm]     = useState(FORM_VACIO);
   const [nuevaCat, setNuevaCat] = useState({ nombre: "", color: "#6366f1" });
 
   const cargar = () => {
@@ -42,11 +50,23 @@ export default function Calendario() {
     return () => clearInterval(id);
   }, [mes, anio]);
 
+  // Mapea cada día del mes a sus eventos (incluyendo eventos de varios días)
   const eventosPorDia = {};
   eventos.forEach(e => {
-    const dia = parseInt(e.fecha.split("-")[2]);
-    if (!eventosPorDia[dia]) eventosPorDia[dia] = [];
-    eventosPorDia[dia].push(e);
+    const [ay, am, ad] = e.fecha.split("-").map(Number);
+    const finStr = e.fecha_fin || e.fecha;
+    const [fy, fm, fd] = finStr.split("-").map(Number);
+    const inicio = new Date(ay, am - 1, ad);
+    const fin    = new Date(fy, fm - 1, fd);
+    let cur = new Date(inicio);
+    while (cur <= fin) {
+      if (cur.getMonth() + 1 === mes && cur.getFullYear() === anio) {
+        const dia = cur.getDate();
+        if (!eventosPorDia[dia]) eventosPorDia[dia] = [];
+        if (!eventosPorDia[dia].find(ev => ev.id === e.id)) eventosPorDia[dia].push(e);
+      }
+      cur.setDate(cur.getDate() + 1);
+    }
   });
 
   const { offsetInicio, totalDias } = diasDelMes(anio, mes);
@@ -62,17 +82,38 @@ export default function Calendario() {
     setDiaSelec(null);
   };
 
-  const abrirFormEvento = (dia) => {
+  const abrirFormNuevo = (dia) => {
     const fecha = `${anio}-${String(mes).padStart(2,"0")}-${String(dia).padStart(2,"0")}`;
-    setForm({ titulo: "", fecha, hora: "", descripcion: "", categoria_id: categorias[0]?.id ?? "" });
+    setForm({ ...FORM_VACIO, fecha, categoria_id: categorias[0]?.id ?? "" });
+    setEventoEditar(null);
+    setError(null);
+    setMostrarForm(true);
+  };
+
+  const abrirFormEditar = (e) => {
+    setForm({
+      titulo:       e.titulo,
+      fecha:        e.fecha,
+      fecha_fin:    e.fecha_fin || "",
+      hora:         e.hora || "",
+      descripcion:  e.descripcion || "",
+      categoria_id: e.categoria_id ?? "",
+    });
+    setEventoEditar(e);
+    setError(null);
     setMostrarForm(true);
   };
 
   const guardarEvento = async (e) => {
     e.preventDefault();
     setError(null);
+    const payload = { ...form, categoria_id: form.categoria_id || null, fecha_fin: form.fecha_fin || null };
     try {
-      await crearEvento({ ...form, categoria_id: form.categoria_id || null });
+      if (eventoEditar) {
+        await actualizarEvento(eventoEditar.id, payload);
+      } else {
+        await crearEvento(payload);
+      }
       setMostrarForm(false);
       cargar();
     } catch (err) {
@@ -175,7 +216,7 @@ export default function Calendario() {
         <div className={styles.panel}>
           <div className={styles.panelHeader}>
             <span className={styles.panelTitulo}>{diaSelec} de {MESES[mes - 1]}</span>
-            <button className={styles.btnPrimario} onClick={() => abrirFormEvento(diaSelec)}>+ Añadir</button>
+            <button className={styles.btnPrimario} onClick={() => abrirFormNuevo(diaSelec)}>+ Añadir</button>
           </div>
 
           {eventosDelDia.length === 0
@@ -185,10 +226,14 @@ export default function Calendario() {
                 <span className={styles.eventoDot} style={{ background: e.categoria_color || "#6366f1" }} />
                 <div className={styles.eventoInfo}>
                   <span className={styles.eventoTitulo}>{e.titulo}</span>
+                  {e.fecha_fin && e.fecha_fin !== e.fecha && (
+                    <span className={styles.eventoHora}>{formatoFecha(e.fecha)} – {formatoFecha(e.fecha_fin)}</span>
+                  )}
                   {e.hora && <span className={styles.eventoHora}>{e.hora}</span>}
                   {e.descripcion && <span className={styles.eventoDesc}>{e.descripcion}</span>}
                   <span className={styles.eventoMeta}>{e.categoria_nombre} · {e.creado_por}</span>
                 </div>
+                <button className={styles.btnEditar} onClick={() => abrirFormEditar(e)} title="Editar">✏</button>
                 <button className={styles.btnBorrar} onClick={() => borrarEvento(e.id)}>✕</button>
               </div>
             ))
@@ -199,15 +244,21 @@ export default function Calendario() {
       {mostrarForm && (
         <div className={styles.overlay} onClick={() => setMostrarForm(false)}>
           <div className={styles.modal} onClick={e => e.stopPropagation()}>
-            <h2 className={styles.modalTitulo}>Nuevo evento</h2>
+            <h2 className={styles.modalTitulo}>{eventoEditar ? "Editar evento" : "Nuevo evento"}</h2>
             <form className={styles.formEvento} onSubmit={guardarEvento}>
               <div className={styles.campo}>
                 <label>Título</label>
                 <input value={form.titulo} onChange={e => setForm(p => ({ ...p, titulo: e.target.value }))} required />
               </div>
-              <div className={styles.campo}>
-                <label>Fecha</label>
-                <input type="date" value={form.fecha} onChange={e => setForm(p => ({ ...p, fecha: e.target.value }))} required />
+              <div className={styles.campoFila}>
+                <div className={styles.campo}>
+                  <label>Fecha inicio</label>
+                  <input type="date" value={form.fecha} onChange={e => setForm(p => ({ ...p, fecha: e.target.value }))} required />
+                </div>
+                <div className={styles.campo}>
+                  <label>Fecha fin (opcional)</label>
+                  <input type="date" value={form.fecha_fin} min={form.fecha} onChange={e => setForm(p => ({ ...p, fecha_fin: e.target.value }))} />
+                </div>
               </div>
               <div className={styles.campo}>
                 <label>Hora (opcional)</label>
@@ -229,7 +280,7 @@ export default function Calendario() {
               {error && <p className={styles.error}>{error}</p>}
               <div className={styles.modalAcciones}>
                 <button type="button" className={styles.btnSecundario} onClick={() => setMostrarForm(false)}>Cancelar</button>
-                <button type="submit" className={styles.btnPrimario}>Guardar</button>
+                <button type="submit" className={styles.btnPrimario}>{eventoEditar ? "Guardar cambios" : "Guardar"}</button>
               </div>
             </form>
           </div>
