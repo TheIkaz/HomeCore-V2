@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   getListaCompra, getProductos,
-  modificarProducto, crearProducto, compraHecha,
+  modificarProducto, crearProducto,
 } from "../../api/inventario";
 import styles from "./Inventario.module.css";
 
@@ -10,8 +10,7 @@ export default function ListaCompra() {
   const navigate = useNavigate();
   const [productos,      setProductos]      = useState([]);
   const [todosProductos, setTodosProductos] = useState([]);
-  const [cantidades,     setCantidades]     = useState({});
-  const [marcados,       setMarcados]       = useState(new Set());
+  const [enCesta,        setEnCesta]        = useState(new Set());
   const [mostrarPanel,   setMostrarPanel]   = useState(false);
   const [mostrarNuevo,   setMostrarNuevo]   = useState(false);
   const [formNuevo,      setFormNuevo]      = useState({ nombre: "", categoria: "", catNueva: "", unidad: "" });
@@ -32,43 +31,24 @@ export default function ListaCompra() {
 
   if (cargando) return <p className={styles.cargando}>Cargando...</p>;
 
-  // ── Cantidades ────────────────────────────────────────────────
-  const setCantidad = (id, val) =>
-    setCantidades((prev) => ({ ...prev, [id]: val }));
-
-  // ── Marcar / desmarcar ────────────────────────────────────────
-  const toggleMarcado = (id) =>
-    setMarcados((prev) => {
+  const toggleCesta = (id) =>
+    setEnCesta((prev) => {
       const next = new Set(prev);
       next.has(id) ? next.delete(id) : next.add(id);
       return next;
     });
 
-  const toggleTodos = () => {
-    if (marcados.size === productos.length) {
-      setMarcados(new Set());
-    } else {
-      setMarcados(new Set(productos.map((p) => p.id)));
-    }
-  };
-
-  // ── Compra hecha ──────────────────────────────────────────────
-  const hacerCompra = async () => {
-    const items = [...marcados].map((id) => ({
-      id,
-      cantidad: parseFloat(cantidades[id] ?? 1) || 0,
-    }));
-    await compraHecha(items);
-    setMarcados(new Set());
-    setCantidades({});
+  const terminarCompra = async () => {
+    await Promise.all(
+      [...enCesta].map((id) => modificarProducto(id, { en_lista_compra: false }))
+    );
+    setEnCesta(new Set());
     cargar();
   };
 
-  // ── Añadir existente a la lista ───────────────────────────────
   const añadirALista = (p) =>
     modificarProducto(p.id, { en_lista_compra: true }).then(() => cargar());
 
-  // ── Crear nuevo producto y añadir a la lista ──────────────────
   const guardarNuevo = async (e) => {
     e.preventDefault();
     setError(null);
@@ -78,11 +58,11 @@ export default function ListaCompra() {
     if (!categoria) { setError("La categoría es obligatoria"); return; }
     try {
       await crearProducto({
-        nombre:         formNuevo.nombre.trim(),
+        nombre:          formNuevo.nombre.trim(),
         categoria,
-        unidad:         formNuevo.unidad.trim(),
-        cantidad:       0,
-        umbral_agotado: 0,
+        unidad:          formNuevo.unidad.trim(),
+        cantidad:        0,
+        umbral_agotado:  0,
         en_lista_compra: true,
       });
       setFormNuevo({ nombre: "", categoria: "", catNueva: "", unidad: "" });
@@ -96,7 +76,6 @@ export default function ListaCompra() {
   const enListaIds  = new Set(productos.map((p) => p.id));
   const disponibles = todosProductos.filter((p) => !enListaIds.has(p.id));
   const categorias  = [...new Set(todosProductos.map((p) => p.categoria).filter(Boolean))].sort();
-  const todosMarcados = productos.length > 0 && marcados.size === productos.length;
 
   return (
     <div>
@@ -119,10 +98,7 @@ export default function ListaCompra() {
           ))}
 
           {!mostrarNuevo ? (
-            <button
-              className={styles.btnNuevoEnLista}
-              onClick={() => setMostrarNuevo(true)}
-            >
+            <button className={styles.btnNuevoEnLista} onClick={() => setMostrarNuevo(true)}>
               + Crear artículo nuevo
             </button>
           ) : (
@@ -167,60 +143,38 @@ export default function ListaCompra() {
         </div>
       )}
 
-      {/* Lista de la compra */}
+      {/* Lista */}
       {productos.length === 0 ? (
         <p className={styles.vacio}>La lista de la compra está vacía.</p>
       ) : (
         <>
           <ul className={styles.listaCompra}>
-            {/* Cabecera con "marcar todos" */}
-            <li className={styles.itemCompraHeader}>
-              <input
-                type="checkbox"
-                className={styles.check}
-                checked={todosMarcados}
-                onChange={toggleTodos}
-              />
-              <span className={styles.itemNombre} style={{ color: "var(--color-muted)", fontSize: "0.8rem" }}>
-                Marcar todos
-              </span>
-            </li>
-
             {productos.map((p) => (
               <li
                 key={p.id}
-                className={`${styles.itemCompra} ${marcados.has(p.id) ? styles.itemMarcado : ""}`}
+                className={`${styles.itemCompra} ${enCesta.has(p.id) ? styles.itemMarcado : ""}`}
+                onClick={() => toggleCesta(p.id)}
               >
                 <input
                   type="checkbox"
                   className={styles.check}
-                  checked={marcados.has(p.id)}
-                  onChange={() => toggleMarcado(p.id)}
+                  checked={enCesta.has(p.id)}
+                  onChange={() => toggleCesta(p.id)}
+                  onClick={e => e.stopPropagation()}
                 />
                 <span className={styles.itemNombre}>
                   {p.nombre} <small>({p.categoria})</small>
                 </span>
-                <div className={styles.itemCompraAcciones}>
-                  <input
-                    type="number"
-                    min="0"
-                    step="any"
-                    value={cantidades[p.id] ?? 1}
-                    onChange={(e) => setCantidad(p.id, e.target.value)}
-                    className={styles.inputCantidadCompra}
-                  />
-                  <span className={styles.unidadCompra}>{p.unidad}</span>
-                </div>
               </li>
             ))}
           </ul>
 
           <button
             className={styles.btnCompraHecha}
-            disabled={marcados.size === 0}
-            onClick={hacerCompra}
+            disabled={enCesta.size === 0}
+            onClick={terminarCompra}
           >
-            Compra hecha ({marcados.size})
+            Terminar compra
           </button>
         </>
       )}

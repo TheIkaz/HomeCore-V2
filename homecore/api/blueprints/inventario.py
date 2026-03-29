@@ -154,28 +154,6 @@ def modificar(id_producto):
     return jsonify({"status": "ok", "mensaje": "Producto modificado correctamente"})
 
 
-@inventario_bp.route("/compra-hecha", methods=["POST"])
-def compra_hecha():
-    data  = request.get_json(silent=True) or {}
-    items = data.get("items", [])   # [{id, cantidad}]
-    if not items:
-        return jsonify({"status": "error", "mensaje": "No se proporcionaron artículos"}), 400
-
-    db = get_db()
-    for item in items:
-        id_p = item.get("id")
-        qty  = float(item.get("cantidad", 0))
-        prod = db.execute("SELECT cantidad FROM productos WHERE id = ?", (id_p,)).fetchone()
-        if prod:
-            db.execute(
-                "UPDATE productos SET cantidad = ?, en_lista_compra = 0 WHERE id = ?",
-                (prod["cantidad"] + qty, id_p),
-            )
-    db.commit()
-    for item in items:
-        _actualizar_agotado(db, item.get("id"))
-    return jsonify({"status": "ok"})
-
 
 @inventario_bp.route("/<id_producto>", methods=["DELETE"])
 def eliminar(id_producto):
