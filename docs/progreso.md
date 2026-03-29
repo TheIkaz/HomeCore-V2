@@ -188,19 +188,125 @@ Módulo de calendario compartido visible para todos los usuarios del grupo `fami
 
 ### En cartera (decidido)
 
-| Módulo | Prioridad | Notas |
-|---|---|---|
-| **Gestor de contraseñas** | Fase 12 | Integración con Vaultwarden (Bitwarden self-hosted) como tile de acceso rápido. |
-| **Gastos domésticos** | Por definir | Registrar gastos del hogar con categorías e histórico. Pendiente decidir formato de entrada y si incluye dashboard/gráficas. |
-| **Menú semanal** | Por definir | Planificador de menús semanales. Sin integración con lista de la compra por ahora. Explorar generación asistida por IA (gustos, restricciones dietéticas, variedad). Posible uso de API de Claude. |
-| **Tareas del hogar** | Por definir | Lista de tareas compartida: descripción, responsable y estado. Sin notificaciones por ahora. |
+---
+
+#### Fase 12 — Gestor de contraseñas
+
+Integración con **Vaultwarden** (implementación self-hosted de Bitwarden). No es un módulo propio de HomeCore sino un servicio Docker adicional accesible desde el dashboard como tile de acceso rápido.
+
+- Nuevo contenedor `vaultwarden` en `docker-compose.yml`
+- Nuevo subdominio `vault.theikaz.com` en Caddy
+- Autenticación propia de Vaultwarden (no forward auth — requiere login independiente por seguridad)
+- Tile en HomeCore visible para todos los usuarios del grupo `familia`
+
+---
+
+#### Gastos domésticos
+
+Módulo propio de HomeCore para registrar y consultar los gastos del hogar.
+
+**Funcionalidad prevista:**
+- Registro de gastos: importe, categoría, descripción, fecha, quién lo registra
+- Categorías de gasto (alimentación, suministros, hogar, ocio, transporte, etc.)
+- Listado con filtros por mes y categoría
+- **Pendiente de decisión**: si incluir dashboard con gráficas (totales por mes, distribución por categoría) o mantenerlo como lista simple
+
+**Base de datos:**
+```
+gastos
+──────────────────────────────
+id
+importe (float)
+categoria (texto)
+descripcion (texto)
+fecha (date)
+registrado_por (username)
+```
+
+---
+
+#### Menú semanal
+
+Planificador de menús con asistencia de IA. Solo **comida y cena** (sin desayuno). Historial de las **últimas 3–4 semanas**.
+
+**Funcionalidad prevista:**
+
+1. **Restricciones alimentarias por usuario** — tabla donde cada miembro tiene una lista negra de alimentos que no come. Cualquier miembro puede ver y editar las restricciones de todos.
+
+2. **Formulario de generación:**
+   - Selección de comensales: usuarios de la app (con sus restricciones cargadas automáticamente) + número de invitados adicionales sin cuenta
+   - Selección de días y comidas: cuadrícula lunes–domingo, tick independiente para comida y cena en cada día
+   - Campo de notas libre: indicaciones puntuales ("sin pasta esta semana", "incluir pizza el viernes")
+
+3. **Generación asistida por IA** — ver sección "Dilema IA" más abajo
+
+4. **Resultado:**
+   - Menú mostrado por días con comida y cena
+   - Opción de **regenerar un día concreto** sin alterar el resto
+   - Opción de **guardar** el menú de la semana
+
+**Base de datos:**
+```
+restricciones_alimentarias     menus_semanales
+──────────────────────────     ───────────────────────────────
+id                             id
+usuario (username)             semana (ej. 2026-W14)
+alimento                       dia (lunes…domingo)
+                               tipo (comida | cena)
+                               descripcion
+                               comensales (texto)
+                               generado_en (timestamp)
+```
+
+**Dilema: motor de IA — pendiente de decisión**
+
+El módulo necesita un motor que genere menús variados respetando restricciones y notas. Se han evaluado tres opciones:
+
+| Opción | Velocidad | Dependencia externa | Coste | Estado |
+|---|---|---|---|---|
+| **Groq API** (LLaMA/Mixtral) | ~2–3 seg | Sí (cuenta Groq gratuita) | Gratuito (tier libre generoso) | ⏳ Pendiente decisión |
+| **Ollama local** (llama3.2:3b) | ~2–4 min | No (100% self-hosted) | 0 — corre en la Pi | ⏳ Pendiente decisión |
+| **Reglas + base de datos de platos** | Instantáneo | No | 0 | ⏳ Pendiente decisión |
+
+- **Groq**: gratuito, muy rápido, pero los datos de restricciones se envían en el prompt a un servidor externo.
+- **Ollama**: completamente local, sin dependencias, pero la Pi 4 solo tiene CPU (sin GPU) → generación lenta (2–4 min). El código del backend sería idéntico al de Groq (API compatible).
+- **Reglas**: sin IA, sin dependencias, instantáneo. Menos variedad y adaptación.
+
+> **Decisión pendiente.** Cuando se decida el motor, el resto del módulo está diseñado y listo para implementar.
+
+---
+
+#### Tareas del hogar
+
+Lista de tareas compartida entre todos los miembros de la familia.
+
+**Funcionalidad prevista:**
+- Crear tarea: título, descripción opcional, responsable (usuario de la app), estado
+- Estados: Pendiente → En progreso → Hecha
+- Cualquier miembro puede crear tareas y cambiar el estado
+- Sin notificaciones por ahora
+
+**Base de datos:**
+```
+tareas
+──────────────────────────────
+id
+titulo
+descripcion (opcional)
+responsable (username, opcional)
+estado (pendiente | en_progreso | hecha)
+creado_por (username)
+creado_en (timestamp)
+```
+
+---
 
 ### En reserva (idea anotada, sin fecha)
 
 | Módulo | Notas |
 |---|---|
-| **Fotos familiares** | Galería privada. Posible integración con Immich. Sin fecha. |
-| **Notificaciones de stock** | Aviso por push o email (Ntfy) al llegar al umbral de agotado. Sin fecha. |
+| **Fotos familiares** | Galería privada. Posible integración con Immich (alternativa self-hosted a Google Fotos). Sin fecha. |
+| **Notificaciones de stock** | Aviso por push o email (Ntfy) cuando un producto llega al umbral de agotado. Sin fecha. |
 
 ### Descartado
 
