@@ -77,6 +77,7 @@ export default function InventarioLista() {
       {editando !== null && (
         <ProductoForm
           producto={editando}
+          categorias={categorias}
           onGuardado={() => { setEditando(null); cargar(); }}
           onCancelar={() => setEditando(null)}
         />

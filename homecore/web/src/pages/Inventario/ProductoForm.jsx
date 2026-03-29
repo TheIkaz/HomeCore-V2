@@ -2,15 +2,20 @@ import { useState } from "react";
 import { crearProducto, editarProducto } from "../../api/inventario";
 import styles from "./Inventario.module.css";
 
-export default function ProductoForm({ producto, onGuardado, onCancelar }) {
+export default function ProductoForm({ producto, categorias = [], onGuardado, onCancelar }) {
   const esNuevo = !producto.id;
+
+  const catInicial = producto.categoria ?? "";
+  const esExistente = !catInicial || categorias.includes(catInicial);
+
   const [form, setForm] = useState({
     nombre:          producto.nombre         ?? "",
-    categoria:       producto.categoria      ?? "",
     cantidad:        producto.cantidad       ?? 0,
     unidad:          producto.unidad         ?? "",
     umbral_agotado:  producto.umbral_agotado ?? 0,
   });
+  const [catSelec,   setCatSelec]   = useState(esExistente ? catInicial : "__nueva__");
+  const [catNueva,   setCatNueva]   = useState(esExistente ? "" : catInicial);
   const [error, setError] = useState(null);
 
   const cambiar = (e) => {
@@ -18,12 +23,19 @@ export default function ProductoForm({ producto, onGuardado, onCancelar }) {
     setForm((f) => ({ ...f, [name]: value }));
   };
 
+  const categoriaFinal = catSelec === "__nueva__" ? catNueva.trim() : catSelec;
+
   const guardar = async (e) => {
     e.preventDefault();
     setError(null);
+    if (!categoriaFinal) {
+      setError("La categoría es obligatoria");
+      return;
+    }
     try {
       const data = {
         ...form,
+        categoria:      categoriaFinal,
         cantidad:       parseFloat(form.cantidad),
         umbral_agotado: parseFloat(form.umbral_agotado),
       };
@@ -46,10 +58,33 @@ export default function ProductoForm({ producto, onGuardado, onCancelar }) {
         <label>Nombre</label>
         <input name="nombre" value={form.nombre} onChange={cambiar} required />
       </div>
+
       <div className={styles.campo}>
         <label>Categoría</label>
-        <input name="categoria" value={form.categoria} onChange={cambiar} required />
+        <select
+          className={styles.selectCampo}
+          value={catSelec}
+          onChange={e => setCatSelec(e.target.value)}
+          required
+        >
+          <option value="" disabled>Selecciona una categoría</option>
+          {categorias.map(c => (
+            <option key={c} value={c}>{c}</option>
+          ))}
+          <option value="__nueva__">── Nueva categoría ──</option>
+        </select>
+        {catSelec === "__nueva__" && (
+          <input
+            className={styles.inputNuevaCat}
+            placeholder="Nombre de la nueva categoría"
+            value={catNueva}
+            onChange={e => setCatNueva(e.target.value)}
+            required
+            autoFocus
+          />
+        )}
       </div>
+
       <div className={styles.campo}>
         <label>Cantidad</label>
         <input name="cantidad" type="number" step="any" value={form.cantidad} onChange={cambiar} required />

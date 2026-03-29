@@ -185,6 +185,27 @@
 }
 .campo input:focus { outline: none; border-color: var(--color-accent); }
 
+.selectCampo {
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 0.375rem;
+  color: var(--color-text);
+  padding: 0.5rem 0.75rem;
+  font-size: 0.9rem;
+}
+.selectCampo:focus { outline: none; border-color: var(--color-accent); }
+
+.inputNuevaCat {
+  margin-top: 0.4rem;
+  background: var(--color-bg);
+  border: 1px solid var(--color-accent);
+  border-radius: 0.375rem;
+  color: var(--color-text);
+  padding: 0.5rem 0.75rem;
+  font-size: 0.9rem;
+}
+.inputNuevaCat:focus { outline: none; }
+
 .formAcciones { display: flex; gap: 0.75rem; margin-top: 0.5rem; }
 
 /* Botones globales */
