@@ -181,6 +181,8 @@ Módulo de calendario compartido visible para todos los usuarios del grupo `fami
    - Cada elemento de la lista de la compra tiene un tick para marcarlo como "metido en el carro".
    - Al final de la lista, botón **"Compra hecha"**.
    - Al pulsar: los artículos marcados se vuelcan al inventario (se suma la cantidad comprada) y se eliminan de la lista de la compra. Los no marcados permanecen en la lista.
+4. **Búsqueda por texto** — campo de búsqueda en la lista general que filtre productos por nombre en tiempo real.
+5. **Filtrado por categoría** — selector para mostrar solo los productos de una categoría concreta.
 
 ---
 
