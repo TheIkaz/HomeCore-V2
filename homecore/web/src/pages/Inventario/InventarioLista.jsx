@@ -7,11 +7,13 @@ import styles from "./Inventario.module.css";
 
 export default function InventarioLista() {
   const navigate = useNavigate();
-  const [productos, setProductos]   = useState([]);
-  const [editando, setEditando]     = useState(null);
-  const [error, setError]           = useState(null);
-  const [cargando, setCargando]     = useState(true);
-  const [confirmar, setConfirmar]   = useState(null);
+  const [productos, setProductos]         = useState([]);
+  const [editando, setEditando]           = useState(null);
+  const [error, setError]                 = useState(null);
+  const [cargando, setCargando]           = useState(true);
+  const [confirmar, setConfirmar]         = useState(null);
+  const [busqueda, setBusqueda]           = useState("");
+  const [categoriaFiltro, setCategoriaFiltro] = useState("");
 
   const cargar = () =>
     getProductos()
@@ -32,6 +34,25 @@ export default function InventarioLista() {
     eliminarProducto(confirmar).then(cargar);
     setConfirmar(null);
   };
+
+  // Categorías únicas para el selector
+  const categorias = [...new Set(productos.map(p => p.categoria).filter(Boolean))].sort();
+
+  // Filtrado
+  const filtrados = productos.filter(p => {
+    const coincideTexto = p.nombre.toLowerCase().includes(busqueda.toLowerCase());
+    const coincideCat   = !categoriaFiltro || p.categoria === categoriaFiltro;
+    return coincideTexto && coincideCat;
+  });
+
+  // Agrupación por categoría
+  const grupos = filtrados.reduce((acc, p) => {
+    const key = p.categoria || "Sin categoría";
+    if (!acc[key]) acc[key] = [];
+    acc[key].push(p);
+    return acc;
+  }, {});
+  const gruposOrdenados = Object.keys(grupos).sort();
 
   if (cargando) return <p className={styles.cargando}>Cargando...</p>;
   if (error)    return <p className={styles.errorMsg}>{error}</p>;
@@ -61,47 +82,74 @@ export default function InventarioLista() {
         />
       )}
 
-      <div className={styles.tablaWrapper}>
-        <table className={styles.tabla}>
-          <thead>
-            <tr>
-              <th>Nombre</th>
-              <th>Categoría</th>
-              <th>Cantidad</th>
-              <th>Estado</th>
-              <th>Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            {productos.map((p) => (
-              <tr key={p.id} className={p.agotado ? styles.filaAgotada : ""}>
-                <td>{p.nombre}</td>
-                <td>{p.categoria}</td>
-                <td>
-                  <div className={styles.cantidadControl}>
-                    <button className={styles.btnCantidad} onClick={() => ajustarCantidad(p, -1)}>−</button>
-                    <span>{p.cantidad} {p.unidad}</span>
-                    <button className={styles.btnCantidad} onClick={() => ajustarCantidad(p, 1)}>+</button>
-                  </div>
-                </td>
-                <td>
-                  {p.agotado
-                    ? <span className={styles.badgeAgotado}>Agotado</span>
-                    : <span className={styles.badgeOk}>OK</span>
-                  }
-                </td>
-                <td className={styles.acciones}>
-                  <button onClick={() => toggleLista(p)} title="Lista de la compra">
-                    {p.en_lista_compra ? "✓ Lista" : "+ Lista"}
-                  </button>
-                  <button onClick={() => setEditando(p)}>Editar</button>
-                  <button className={styles.btnEliminar} onClick={() => eliminar(p.id)}>Eliminar</button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      <div className={styles.barraFiltros}>
+        <input
+          className={styles.inputBusqueda}
+          type="text"
+          placeholder="Buscar por nombre..."
+          value={busqueda}
+          onChange={e => setBusqueda(e.target.value)}
+        />
+        <select
+          className={styles.selectCategoria}
+          value={categoriaFiltro}
+          onChange={e => setCategoriaFiltro(e.target.value)}
+        >
+          <option value="">Todas las categorías</option>
+          {categorias.map(c => (
+            <option key={c} value={c}>{c}</option>
+          ))}
+        </select>
       </div>
+
+      {filtrados.length === 0 ? (
+        <p className={styles.vacio}>No se encontraron productos.</p>
+      ) : (
+        <div className={styles.tablaWrapper}>
+          {gruposOrdenados.map(grupo => (
+            <div key={grupo} className={styles.grupoCategoria}>
+              <div className={styles.grupoTitulo}>{grupo}</div>
+              <table className={styles.tabla}>
+                <thead>
+                  <tr>
+                    <th>Nombre</th>
+                    <th>Cantidad</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {grupos[grupo].map((p) => (
+                    <tr key={p.id} className={p.agotado ? styles.filaAgotada : ""}>
+                      <td>{p.nombre}</td>
+                      <td>
+                        <div className={styles.cantidadControl}>
+                          <button className={styles.btnCantidad} onClick={() => ajustarCantidad(p, -1)}>−</button>
+                          <span>{p.cantidad} {p.unidad}</span>
+                          <button className={styles.btnCantidad} onClick={() => ajustarCantidad(p, 1)}>+</button>
+                        </div>
+                      </td>
+                      <td>
+                        {p.agotado
+                          ? <span className={styles.badgeAgotado}>Agotado</span>
+                          : <span className={styles.badgeOk}>OK</span>
+                        }
+                      </td>
+                      <td className={styles.acciones}>
+                        <button onClick={() => toggleLista(p)} title="Lista de la compra">
+                          {p.en_lista_compra ? "✓ Lista" : "+ Lista"}
+                        </button>
+                        <button onClick={() => setEditando(p)}>Editar</button>
+                        <button className={styles.btnEliminar} onClick={() => eliminar(p.id)}>Eliminar</button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
