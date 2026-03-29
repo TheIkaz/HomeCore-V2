@@ -1,6 +1,6 @@
 # HomeCore V2 — Estado del proyecto
 
-**Última actualización: 28 marzo 2026**
+**Última actualización: 29 marzo 2026**
 Repo: https://github.com/TheIkaz/HomeCore-V2
 
 ---
@@ -170,8 +170,8 @@ Módulo de calendario compartido visible para todos los usuarios del grupo `fami
 
 ### Calendario
 
-1. **Editar evento existente** — formulario de edición sobre un evento ya creado (título, fecha, hora, descripción, categoría).
-2. **Eventos de varios días / intervalo** — un evento puede tener fecha de inicio y fecha de fin. El calendario debe mostrar el evento en todos los días del rango.
+~~1. **Editar evento existente**~~ ✅ — botón ✏ por evento, modal reutilizado en modo edición.
+~~2. **Eventos de varios días / intervalo**~~ ✅ — campo `fecha_fin` opcional, puntos en cada día del rango.
 
 ### Inventario
 
