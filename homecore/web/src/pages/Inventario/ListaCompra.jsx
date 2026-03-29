@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   getListaCompra, getProductos,
-  modificarProducto, crearProducto,
+  modificarProducto, crearProducto, compraHecha,
 } from "../../api/inventario";
 import styles from "./Inventario.module.css";
 
@@ -11,6 +11,7 @@ export default function ListaCompra() {
   const [productos,      setProductos]      = useState([]);
   const [todosProductos, setTodosProductos] = useState([]);
   const [enCesta,        setEnCesta]        = useState(new Set());
+  const [cantidades,     setCantidades]     = useState({});
   const [mostrarPanel,   setMostrarPanel]   = useState(false);
   const [mostrarNuevo,   setMostrarNuevo]   = useState(false);
   const [formNuevo,      setFormNuevo]      = useState({ nombre: "", categoria: "", catNueva: "", unidad: "" });
@@ -38,11 +39,17 @@ export default function ListaCompra() {
       return next;
     });
 
+  const setCantidad = (id, val) =>
+    setCantidades((prev) => ({ ...prev, [id]: val }));
+
   const terminarCompra = async () => {
-    await Promise.all(
-      [...enCesta].map((id) => modificarProducto(id, { en_lista_compra: false }))
-    );
+    const items = [...enCesta].map((id) => ({
+      id,
+      cantidad: parseFloat(cantidades[id] ?? 1) || 0,
+    }));
+    await compraHecha(items);
     setEnCesta(new Set());
+    setCantidades({});
     cargar();
   };
 
@@ -153,18 +160,27 @@ export default function ListaCompra() {
               <li
                 key={p.id}
                 className={`${styles.itemCompra} ${enCesta.has(p.id) ? styles.itemMarcado : ""}`}
-                onClick={() => toggleCesta(p.id)}
               >
                 <input
                   type="checkbox"
                   className={styles.check}
                   checked={enCesta.has(p.id)}
                   onChange={() => toggleCesta(p.id)}
-                  onClick={e => e.stopPropagation()}
                 />
                 <span className={styles.itemNombre}>
                   {p.nombre} <small>({p.categoria})</small>
                 </span>
+                <div className={styles.itemCompraAcciones}>
+                  <input
+                    type="number"
+                    min="0"
+                    step="any"
+                    value={cantidades[p.id] ?? 1}
+                    onChange={(e) => setCantidad(p.id, e.target.value)}
+                    className={styles.inputCantidadCompra}
+                  />
+                  <span className={styles.unidadCompra}>{p.unidad}</span>
+                </div>
               </li>
             ))}
           </ul>
