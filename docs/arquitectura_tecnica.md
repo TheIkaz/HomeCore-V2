@@ -1058,4 +1058,108 @@ docker compose \
 
 ---
 
-*Documento generado el 25 de marzo de 2026.*
+## 15. Flujos e integraciones entre módulos
+
+Esta sección documenta cómo se comunican los módulos del dominio Hogar entre sí: qué datos fluyen, cuándo y cómo se procesan.
+
+### 15.1 Modelo de comunicación
+
+Los módulos se comunican mediante **llamadas REST síncronas internas**. No hay bus de eventos ni WebSockets entre módulos. Cuando una acción en un módulo debe desencadenar algo en otro, el endpoint que recibe la acción invoca directamente la lógica del módulo destino dentro del mismo proceso Flask.
+
+Este modelo es adecuado para el caso de uso doméstico actual (baja concurrencia, sin requisitos de tiempo real estrictos). Si en el futuro una integración requiriera desacoplamiento real (ej. notificaciones push asíncronas), se añadiría una cola de tareas ligera (Celery + Redis, ya disponible en el stack) sin cambiar el resto de la arquitectura.
+
+### 15.2 Flujos implementados
+
+#### Inventario → Lista de compra (producto agotado)
+
+Cuando la cantidad de un producto cae a cero o por debajo del umbral configurado, `_actualizar_agotado()` en `blueprints/inventario.py` marca el producto con `agotado=1` en la base de datos. La Lista de compra consulta los productos con `agotado=1` en cada carga y en cada polling (10s).
+
+```
+PATCH /api/inventario/<id>  (modifica cantidad)
+  └─▶ _actualizar_agotado()  (marca agotado si cantidad <= umbral)
+        └─▶ GET /api/inventario/lista-compra  (lee agotados en polling)
+```
+
+#### Lista de compra → Inventario (compra completada)
+
+El usuario marca artículos como comprados e indica la cantidad adquirida. Al pulsar "Terminar compra", el endpoint suma cada cantidad comprada al stock del producto correspondiente y elimina la marca de agotado.
+
+```
+POST /api/inventario/terminar-compra
+  └─▶ Para cada artículo marcado:
+        UPDATE productos SET cantidad = cantidad + comprado, agotado = 0
+```
+
+### 15.3 Flujos pendientes de implementación
+
+Estos flujos dependen de módulos aún no implementados (Gastos, Menú semanal).
+
+#### Lista de compra → Gastos (compra completada)
+
+Cuando el usuario termina la compra, además de actualizar el inventario, el sistema registrará automáticamente un gasto con el importe total introducido por el usuario.
+
+```
+POST /api/inventario/terminar-compra
+  ├─▶ Actualiza inventario (implementado)
+  └─▶ POST /api/gastos/  (pendiente)
+        body: { importe, categoria: "compra", descripcion, fecha, registrado_por }
+```
+
+**Decisión de diseño:** el importe de la compra lo introduce el usuario manualmente en el momento de "Terminar compra". HomeCore no tiene integración con sistemas de pago ni tickets de compra.
+
+#### Menú semanal → Lista de compra (menú generado)
+
+Cuando el usuario guarda un menú semanal, el sistema puede añadir automáticamente los ingredientes necesarios a la lista de compra, omitiendo los que ya tienen stock suficiente.
+
+```
+POST /api/menu/guardar
+  └─▶ Para cada ingrediente del menú:
+        GET /api/inventario/<ingrediente>  (consulta stock actual)
+        Si stock < cantidad_necesaria:
+          INSERT INTO lista_compra (o marcar como agotado)
+```
+
+**Nota:** esta integración requiere que los platos del menú tengan ingredientes definidos. El diseño exacto (base de datos de platos vs descripción libre) está pendiente de decisión.
+
+### 15.4 Diagrama de flujos entre módulos
+
+```mermaid
+graph LR
+    INV[Inventario] -->|producto agotado| LC[Lista de compra]
+    LC -->|compra completada| INV
+    LC -->|compra completada| GAS[Gastos]
+    MENU[Menú semanal] -->|ingredientes necesarios| LC
+
+    style GAS fill:#555,stroke:#888,color:#ccc
+    style MENU fill:#555,stroke:#888,color:#ccc
+```
+
+> Los nodos en gris corresponden a módulos pendientes de implementación.
+
+### 15.5 Contratos de datos entre módulos
+
+Los módulos se comunican exclusivamente a través de la API REST interna. No hay acceso directo entre blueprints a las tablas del otro módulo; cada módulo expone sus datos a través de sus propios endpoints.
+
+**Formato de respuesta estándar** (todos los endpoints):
+
+```json
+{
+  "ok": true,
+  "datos": { ... }
+}
+```
+
+En caso de error:
+
+```json
+{
+  "ok": false,
+  "error": "Descripción del error"
+}
+```
+
+**Nota:** este formato es el objetivo de diseño. La implementación actual de algunos endpoints devuelve directamente el objeto sin envolver. La estandarización completa se aplicará progresivamente cuando se implementen los nuevos módulos.
+
+---
+
+*Documento actualizado el 30 de marzo de 2026.*
