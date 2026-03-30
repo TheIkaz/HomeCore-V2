@@ -172,6 +172,19 @@ Mejoras técnicas planificadas para abordar cuando se implementen los módulos d
   - Migraciones numeradas (`migrations/001_gastos.sql`, `migrations/002_menu.sql`, etc.) para cambios incrementales
 - La herramienta puede ser tan simple como un script Python que aplique los `.sql` pendientes en orden, registrando cuáles ya se han ejecutado en una tabla `schema_migrations`
 
+### Eliminar paths hardcodeados en scripts
+
+**Cuándo:** antes de cualquier migración de hardware (nueva Pi, reubicación del SSD, cambio de punto de montaje).
+
+**Por qué:** los scripts de backup y operación (`scripts/backup.sh`, `scripts/restore.sh`) contienen rutas absolutas hardcodeadas (`/srv/homecore`). Si el SSD se monta en una ruta diferente en la nueva máquina, los scripts fallan silenciosamente o apuntan a directorios incorrectos.
+
+**Qué implica:**
+- Definir una variable de entorno `HOMECORE_BASE` (ej. `/srv/homecore`) en el `.env`
+- Sustituir todas las ocurrencias de la ruta absoluta en los scripts por `${HOMECORE_BASE}`
+- Documentar en `arranque_inicial.md` que esta variable debe ajustarse si la ruta de montaje del SSD es diferente
+
+**Alcance:** solo afecta a `scripts/`. El `docker-compose.yml` ya usa rutas relativas desde su propio directorio, por lo que es portable por diseño.
+
 ---
 
 ## En reserva
