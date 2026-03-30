@@ -87,7 +87,7 @@ ls -la /mnt/ssd/
 Crea la nueva estructura:
 
 ```bash
-sudo mkdir -p /srv/homecore/{compose,caddy,authentik,homecore,data/{nextcloud,paperless},media/{peliculas,series,musica},backups,logs}
+sudo mkdir -p /srv/homecore/{compose,caddy,authentik,homecore,filebrowser,jellyfin,backups,logs}
 sudo chown -R $USER:$USER /srv/homecore
 find /srv/homecore -type d
 ```

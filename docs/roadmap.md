@@ -144,6 +144,36 @@ Una vez implementados los módulos anteriores, las integraciones previstas por o
 
 ---
 
+## Evolución técnica del backend
+
+Mejoras técnicas planificadas para abordar cuando se implementen los módulos del dominio Hogar (Gastos, Menú, Tareas). No son urgentes ahora — el código actual funciona correctamente — pero serán necesarias a medida que el sistema crezca.
+
+### Service layer
+
+**Cuándo:** al implementar el segundo o tercer módulo nuevo.
+
+**Por qué:** los módulos actuales tienen lógica de negocio directamente en los blueprints Flask. Mientras cada módulo es independiente, esto funciona. En cuanto aparezca lógica compartida entre módulos (ej. "terminar compra" debe actualizar inventario *y* registrar un gasto), duplicar esa lógica en los endpoints es insostenible.
+
+**Qué implica:**
+- Crear `homecore/api/services/` con un módulo por dominio (`inventario_service.py`, `gastos_service.py`, etc.)
+- Los blueprints quedan como capa fina: reciben la petición, llaman al servicio, devuelven la respuesta
+- La lógica de negocio y las llamadas a la base de datos se mueven a los servicios
+
+### Migraciones de base de datos
+
+**Cuándo:** antes de añadir el primer módulo nuevo que requiera cambios de esquema.
+
+**Por qué:** actualmente `init_db()` en `database.py` mezcla creación de tablas, alteraciones de esquema y seed de datos iniciales. Funciona para el esquema actual, pero cada vez que se añada una tabla o columna hay que editar `init_db` directamente, sin trazabilidad ni posibilidad de rollback.
+
+**Qué implica:**
+- Separar `init_db` en tres responsabilidades:
+  - `schema.sql` — definición de tablas (estructura base, solo CREATE TABLE IF NOT EXISTS)
+  - `seed.sql` — datos iniciales (apps del catálogo, categorías de calendario)
+  - Migraciones numeradas (`migrations/001_gastos.sql`, `migrations/002_menu.sql`, etc.) para cambios incrementales
+- La herramienta puede ser tan simple como un script Python que aplique los `.sql` pendientes en orden, registrando cuáles ya se han ejecutado en una tabla `schema_migrations`
+
+---
+
 ## En reserva
 
 Ideas anotadas sin fecha ni compromiso de implementación.
