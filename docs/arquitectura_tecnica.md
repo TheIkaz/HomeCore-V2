@@ -1084,6 +1084,8 @@ Los módulos se comunican mediante **llamadas REST síncronas internas**. No hay
 
 Este modelo es adecuado para el caso de uso doméstico actual (baja concurrencia, sin requisitos de tiempo real estrictos). Si en el futuro una integración requiriera desacoplamiento real (ej. notificaciones push asíncronas), se añadiría una cola de tareas ligera (Celery + Redis, ya disponible en el stack) sin cambiar el resto de la arquitectura.
 
+> Las reglas formales de interacción entre módulos — propiedad de datos, tipos de comunicación, catálogo de eventos y gestión de errores — están definidas en `docs/modelo_interaccion.md`.
+
 ### 15.2 Flujos implementados
 
 #### Inventario → Lista de compra (producto agotado)

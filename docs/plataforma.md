@@ -140,7 +140,7 @@ Las integraciones que ya están implementadas:
 
 Las integraciones pendientes dependen de que los módulos destino (Gastos, Menú) estén implementados.
 
-> Para el detalle técnico de estos flujos, ver `docs/arquitectura_tecnica.md`, sección 15.
+> Para el detalle técnico de estos flujos, ver `docs/arquitectura_tecnica.md` sección 15. Para las reglas formales de interacción entre módulos (propiedad de datos, eventos, acoplamiento), ver `docs/modelo_interaccion.md`.
 
 ---
 
