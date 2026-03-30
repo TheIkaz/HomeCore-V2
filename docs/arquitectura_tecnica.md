@@ -373,6 +373,22 @@ Las sesiones de Authentik están configuradas en el Login Stage `default-authent
 
 Un usuario que marque "Recuérdame" mantendrá su sesión activa durante 30 días sin necesidad de volver a autenticarse.
 
+### 7.6 Modelo de seguridad del backend — decisión de diseño
+
+**El backend Flask no valida la identidad del usuario de forma independiente.** Si una petición llega al backend, asume que Caddy ya la ha autenticado con Authentik. No existe ningún mecanismo interno de verificación adicional (JWT, API key, shared secret).
+
+Esta es una **decisión de diseño consciente**, no una omisión. Se sostiene sobre dos garantías de infraestructura:
+
+1. **El backend nunca está expuesto directamente.** El puerto 5000 del contenedor `homecore-app` solo es accesible desde la red Docker interna `homecore`. No está publicado en el host ni accesible desde el exterior bajo ninguna circunstancia.
+
+2. **Caddy es la única entrada.** Todo el tráfico externo llega por Cloudflare Tunnel → Caddy. Caddy aplica `forward_auth` antes de reenviar cualquier petición al backend. Sin sesión válida en Authentik, la petición no llega.
+
+**Implicación:** si alguien con acceso a la red Docker interna (ej. otro contenedor comprometido) enviara peticiones directamente al backend sin los headers `X-Authentik-*`, el backend los trataría como usuario anónimo — sin nombre, sin grupos — y devolvería solo lo que un usuario sin grupos puede ver (prácticamente nada).
+
+**Por qué no se añade un shared secret:** añadir un header secreto entre Caddy y Flask incrementa la complejidad operativa (gestión del secreto, rotación) sin aportar protección real en el modelo de amenaza de este sistema. El riesgo de un contenedor interno comprometido que ataque el backend está fuera del alcance de un servidor doméstico.
+
+**Condición para revisar esta decisión:** si en el futuro el backend expone endpoints accesibles desde fuera de la red Docker (ej. una API pública, webhooks externos), habría que añadir validación interna antes de hacerlo.
+
 ---
 
 ## 8. HomeCore — arquitectura interna detallada
